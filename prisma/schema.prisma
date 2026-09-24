@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String
+  dimensions  String?
+  material    String?
+  price       Float?
+  moq         Int?
+  featured    Boolean     @default(false)
+  inStock     Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  orderItems  OrderItem[]
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  altText   String?
+  isPrimary Boolean  @default(false)
+  order     Int      @default(0)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique
+  customerName String
+  email        String
+  phone        String
+  address      String
+  notes        String?
+  orderType    String      @default("B2C")
+  status       String      @default("PENDING")
+  expectedDeliveryAt DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  notes     String?
+  orderId   String
+  productId String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Inquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String
+  role         String   @default("admin")       // "superadmin" | "admin"
+  isActive     Boolean  @default(false)         // false until super admin approves
+  isSuperAdmin Boolean  @default(false)         // can manage other admins
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Inventory audit relations
+  inventoryCreated     InventoryItem[]        @relation("InventoryCreatedBy")
+  inventoryUpdated     InventoryItem[]        @relation("InventoryUpdatedBy")
+  inventoryDeleted     InventoryItem[]        @relation("InventoryDeletedBy")
+  inventoryTransactions InventoryTransaction[] @relation("TransactionCreatedBy")
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  category    String   @default("General")
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  location  String
+  quote     String
+  rating    Int      @default(5)
+  featured  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  coverImage  String?
+  category    String   @default("General")
+  tags        String   @default("")
+  published   Boolean  @default(false)
+  readTime    Int      @default(5)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+}
+
+// ── Inventory Module ──────────────────────────────────────────
+
+model InventoryItem {
+  id               String   @id @default(cuid())
+
+  // Identification
+  name             String
+  sku              String?  @unique        // optional internal code e.g. "WD-TEAK-001"
+  description      String?
+
+  // Category — the four manufacturing inventory types
+  category         String                  // RAW_MATERIAL | WIP | FINISHED_GOOD | MRO
+  subCategory      String?                 // e.g. "Teak Wood" / "Unpainted Items" / "Power Tools"
+
+  // Unit of measurement
+  unit             String   @default("pieces")  // kg, meters, liters, pieces, sheets, rolls
+
+  // Stock levels
+  quantity         Float    @default(0)    // current quantity on hand
+  minQuantity      Float?                  // reorder alert threshold
+  maxQuantity      Float?                  // max storage capacity
+
+  // Cost tracking — essential for manufacturing cost reports
+  unitCost         Float?                  // cost per unit (latest purchase price)
+  totalValue       Float?                  // snapshot: quantity * unitCost (updated on each txn)
+
+  // Supplier (relevant for RAW_MATERIAL and MRO)
+  supplier         String?
+  supplierContact  String?
+
+  // Physical location in factory/warehouse
+  location         String?                 // e.g. "Warehouse A – Rack 3", "Production Floor"
+
+  // Stock status — auto-managed by API
+  status           String   @default("ACTIVE")  // ACTIVE | LOW_STOCK | OUT_OF_STOCK | DISCONTINUED
+
+  // Soft delete — record kept for reporting, never hard deleted
+  isDeleted        Boolean  @default(false)
+  deletedAt        DateTime?
+  deletedById      String?
+  deletedBy        Admin?   @relation("InventoryDeletedBy",  fields: [deletedById],  references: [id])
+  deletionReason   String?
+
+  // Audit trail — who added/last updated
+  createdById      String?
+  createdBy        Admin?   @relation("InventoryCreatedBy",  fields: [createdById],  references: [id])
+  updatedById      String?
+  updatedBy        Admin?   @relation("InventoryUpdatedBy",  fields: [updatedById],  references: [id])
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  transactions     InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id               String        @id @default(cuid())
+
+  inventoryId      String
+  inventory        InventoryItem @relation(fields: [inventoryId], references: [id])
+
+  // Movement type
+  type             String        // STOCK_IN | STOCK_OUT | ADJUSTMENT | RETURN | DAMAGE | TRANSFER
+
+  // Quantity — always positive; type determines direction
+  quantity         Float
+
+  // Cost at time of transaction — critical for historical cost analysis
+  unitCost         Float?        // cost per unit at this moment
+  totalCost        Float?        // quantity × unitCost
+
+  // Context
+  reason           String?       // "Purchased from supplier", "Used in Sofa batch #12", etc.
+  reference        String?       // PO number, production order, job card number
+
+  // Snapshot of stock after this transaction (for timeline reports)
+  stockAfter       Float?
+
+  // Who performed this action
+  createdById      String?
+  createdBy        Admin?        @relation("TransactionCreatedBy", fields: [createdById], references: [id])
+
+  createdAt        DateTime @default(now())
+}
