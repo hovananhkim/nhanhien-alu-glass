@@ -3,22 +3,23 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { localBusinessJsonLd } from "@/lib/seo";
+import { t } from "@/lib/translations";
 
 export const metadata: Metadata = {
-  title: "NhanHien Fine Furniture – Handcrafted Premium Furniture Since 1994",
+  title: "NhanHien Fine Furniture – Nội thất cao cấp thủ công từ năm 1994",
   description:
-    "Premium handcrafted furniture for homes, hotels and offices in India. Custom B2B bulk orders, teak, oak and sheesham wood furniture. Based in Ahmedabad, Gujarat.",
+    "Nội thất thủ công cao cấp cho ngôi nhà, khách sạn và văn phòng tại Ấn Độ. Đặt hàng số lượng lớn B2B, nội thất gỗ teak, oak và sheesham. Địa điểm ở Ahmedabad, Gujarat.",
   keywords: [
-    "handcrafted furniture India",
-    "teak furniture Ahmedabad",
-    "bulk furniture supplier Gujarat",
-    "custom furniture manufacturer India",
-    "hotel furniture supplier",
+    "nội thất thủ công Ấn Độ",
+    "nội thất gỗ Ahmedabad",
+    "nhà cung cấp nội thất số lượng lớn Gujarat",
+    "nhà sản xuất nội thất tùy chỉnh Ấn Độ",
+    "nhà cung cấp nội thất khách sạn",
   ],
   openGraph: {
-    title: "NhanHien Fine Furniture – Handcrafted Since 1994",
+    title: "NhanHien Fine Furniture – Thủ công từ năm 1994",
     description:
-      "Premium handcrafted furniture for homes, hotels and offices. B2B bulk orders welcome.",
+      "Nội thất thủ công cao cấp cho ngôi nhà, khách sạn và văn phòng. Chào đón đơn hàng số lượng lớn B2B.",
     images: [{ url: "/og-default.jpg", width: 1200, height: 630 }],
   },
 };
@@ -63,6 +64,8 @@ export default async function HomePage() {
   const spotlightCategories = categories.slice(0, 4);
   const latestStory = blogPosts[0];
   const highlightedTestimonial = testimonials[0];
+  const locale = "vi" as const;
+  const homeT = (key: string) => t(key, locale);
 
   return (
     <div style={{ background: "var(--bg-base)" }}>
@@ -99,26 +102,29 @@ export default async function HomePage() {
                 className="text-sm tracking-[0.3em] uppercase font-medium mb-6 animate-fade-in"
                 style={{ color: "var(--color-wood-300)" }}
               >
-                NhanHien Studio Dashboard
+                {homeT("home.hero.badge")}
               </p>
-              <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-semibold text-white leading-[0.95] mb-6 animate-slide-up">
-                Design.
+              <h1
+                className="font-display text-6xl sm:text-7xl lg:text-8xl font-semibold text-white leading-[0.95] mb-6 animate-slide-up"
+                style={{ fontSize: "clamp(2.8rem, 4vw, 5.6rem)" }}
+              >
+                {homeT("home.hero.design")}
                 <br />
-                <em className="italic font-light">Build.</em>
+                <em className="italic font-light">
+                  {homeT("home.hero.build")}
+                </em>
                 <br />
-                Live Better.
+                {homeT("home.hero.liveBetter")}
               </h1>
               <p
                 className="text-lg sm:text-xl leading-relaxed mb-10 max-w-lg animate-slide-up stagger-2"
                 style={{ color: "rgba(255,255,255,0.75)" }}
               >
-                A new way to discover furniture: explore curated moods, material
-                stories, craftsmanship timelines and fresh studio picks in one
-                immersive experience.
+                {homeT("home.hero.description")}
               </p>
               <div className="flex flex-wrap gap-4 animate-fade-in stagger-3">
                 <Link href="/products" className="btn-wood">
-                  Enter Studio Picks
+                  {homeT("home.hero.enterStudio")}
                   <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
@@ -137,7 +143,7 @@ export default async function HomePage() {
                     background: "rgba(255,255,255,0.08)",
                   }}
                 >
-                  Start Your Project
+                  {homeT("home.hero.startProject")}
                 </Link>
               </div>
             </div>
@@ -154,14 +160,26 @@ export default async function HomePage() {
                 className="text-xs tracking-[0.25em] uppercase mb-5"
                 style={{ color: "rgba(255,255,255,0.75)" }}
               >
-                Live Signals
+                {homeT("home.metrics.liveSignals")}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { value: `${featuredProducts.length}`, label: "Fresh Picks" },
-                  { value: `${categories.length}`, label: "Mood Categories" },
-                  { value: "48h", label: "Concept Turnaround" },
-                  { value: "30+", label: "Years Studio Craft" },
+                  {
+                    value: `${featuredProducts.length}`,
+                    label: homeT("home.metrics.freshPicks"),
+                  },
+                  {
+                    value: `${categories.length}`,
+                    label: homeT("home.metrics.moodCategories"),
+                  },
+                  {
+                    value: "48h",
+                    label: homeT("home.metrics.conceptTurnaround"),
+                  },
+                  {
+                    value: "30+",
+                    label: homeT("home.metrics.yearsStudioCraft"),
+                  },
                 ].map((signal) => (
                   <div
                     key={signal.label}
@@ -188,7 +206,9 @@ export default async function HomePage() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           style={{ color: "rgba(255,255,255,0.35)" }}
         >
-          <span className="text-xs tracking-widest uppercase">Scroll</span>
+          <span className="text-xs tracking-widest uppercase">
+            {homeT("common.scroll")}
+          </span>
           <div
             className="w-px h-12 animate-pulse"
             style={{
@@ -207,21 +227,20 @@ export default async function HomePage() {
               className="text-xs tracking-[0.3em] uppercase font-medium mb-3"
               style={{ color: "var(--accent-text)" }}
             >
-              Curated Moods
+              {homeT("home.moods.badge")}
             </p>
             <h2
               className="font-display text-4xl sm:text-5xl"
               style={{ color: "var(--text-primary)" }}
             >
-              Spaces by Feeling
+              {homeT("home.moods.title")}
             </h2>
           </div>
           <p
             className="max-w-lg text-sm sm:text-base"
             style={{ color: "var(--text-muted)" }}
           >
-            Instead of a basic category list, discover directional room vibes
-            that help you shortlist faster.
+            {homeT("home.moods.description")}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -263,7 +282,7 @@ export default async function HomePage() {
                   className="flex items-center gap-2 mt-3 text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500"
                   style={{ color: "var(--color-wood-300)" }}
                 >
-                  <span>View Mood</span>
+                  <span>{homeT("home.moods.view")}</span>
                   <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
                     <path
                       d="M2 7h10M8 3l4 4-4 4"
@@ -288,12 +307,12 @@ export default async function HomePage() {
         <div className="flex gap-12 animate-marquee whitespace-nowrap">
           {Array(4)
             .fill([
-              "Moodboard-first browsing",
-              "Material storytelling",
-              "Studio-curated drops",
-              "Craft timeline",
-              "Project planning support",
-              "Pan-India delivery",
+              homeT("home.marquee.1"),
+              homeT("home.marquee.2"),
+              homeT("home.marquee.3"),
+              homeT("home.marquee.4"),
+              homeT("home.marquee.5"),
+              homeT("home.marquee.6"),
             ])
             .flat()
             .map((text, i) => (
@@ -321,20 +340,20 @@ export default async function HomePage() {
               className="text-xs tracking-[0.3em] uppercase font-medium mb-3"
               style={{ color: "var(--accent-text)" }}
             >
-              Studio Curated
+              {homeT("home.studioPicks.badge")}
             </p>
             <h2
               className="font-display text-4xl sm:text-5xl"
               style={{ color: "var(--text-primary)" }}
             >
-              This Week's Picks
+              {homeT("home.studioPicks.title")}
             </h2>
           </div>
           <Link
             href="/products"
             className="btn-outline text-sm shrink-0 self-start sm:self-auto"
           >
-            View Collection
+            {homeT("home.studioPicks.collection")}
             <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
               <path
                 d="M2 7h10M8 3l4 4-4 4"
@@ -423,14 +442,14 @@ export default async function HomePage() {
                       className="text-sm"
                       style={{ color: "var(--text-faint)" }}
                     >
-                      Price on request
+                      {homeT("common.unknown")}
                     </span>
                   )}
                   <span
                     className="flex items-center gap-1.5 text-sm font-medium group-hover:gap-3 transition-all"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    View Details
+                    {homeT("home.studioPicks.viewDetails")}
                     <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
                       <path
                         d="M2 7h10M8 3l4 4-4 4"
@@ -478,7 +497,7 @@ export default async function HomePage() {
                   className="text-xs tracking-wider uppercase mt-1"
                   style={{ opacity: 0.85 }}
                 >
-                  Years
+                  {homeT("common.years")}
                 </div>
               </div>
             </div>
@@ -487,49 +506,48 @@ export default async function HomePage() {
                 className="text-xs tracking-[0.3em] uppercase font-medium mb-5"
                 style={{ color: "var(--accent-text)" }}
               >
-                Craft Timeline
+                {homeT("home.craft.badge")}
               </p>
               <h2
                 className="font-display text-4xl sm:text-5xl leading-tight mb-6"
                 style={{ color: "var(--text-primary)" }}
               >
-                From Sketch to
+                {homeT("home.craft.title")}
                 <br />
                 <em
                   className="italic font-light"
                   style={{ color: "var(--accent-text)" }}
                 >
-                  Signature Piece
+                  {homeT("home.craft.titleHighlight")}
                 </em>
               </h2>
               <p
                 className="text-lg leading-relaxed mb-6"
                 style={{ color: "var(--text-secondary)" }}
               >
-                Every project follows a transparent timeline so clients know
-                exactly what happens, when it happens, and who owns each stage.
+                {homeT("home.craft.description")}
               </p>
               <div className="grid grid-cols-2 gap-6 mb-10">
                 {[
                   {
                     icon: "01",
-                    title: "Brief & Moodboard",
-                    desc: "Alignment on space and style direction",
+                    title: homeT("home.craft.step1.title"),
+                    desc: homeT("home.craft.step1.desc"),
                   },
                   {
                     icon: "02",
-                    title: "Material Selection",
-                    desc: "Wood, finish and touchpoint approvals",
+                    title: homeT("home.craft.step2.title"),
+                    desc: homeT("home.craft.step2.desc"),
                   },
                   {
                     icon: "03",
-                    title: "Workshop Build",
-                    desc: "Joinery, assembly and detailing in-house",
+                    title: homeT("home.craft.step3.title"),
+                    desc: homeT("home.craft.step3.desc"),
                   },
                   {
                     icon: "04",
-                    title: "Delivery & Setup",
-                    desc: "Final placement and project handover",
+                    title: homeT("home.craft.step4.title"),
+                    desc: homeT("home.craft.step4.desc"),
                   },
                 ].map((f) => (
                   <div key={f.title} className="flex gap-3">
@@ -557,7 +575,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <Link href="/about" className="btn-wood">
-                Explore Our Process
+                {homeT("home.craft.process")}
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                   <path
                     d="M3 8h10M9 4l4 4-4 4"
@@ -600,19 +618,18 @@ export default async function HomePage() {
             <div className="relative grid lg:grid-cols-2 gap-10 items-center">
               <div>
                 <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4 text-white opacity-80">
-                  Project Planning Hub
+                  {homeT("home.project.badge")}
                 </p>
                 <h2 className="font-display text-4xl sm:text-5xl text-white font-semibold mb-5 leading-tight">
-                  Plan Smarter,
+                  {homeT("home.project.title1")}
                   <br />
-                  Build Faster
+                  {homeT("home.project.title2")}
                 </h2>
                 <p
                   className="text-lg leading-relaxed mb-8"
                   style={{ color: "rgba(255,255,255,0.85)" }}
                 >
-                  Share your layout, quantity and deadlines to receive a
-                  practical project roadmap for home or business spaces.
+                  {homeT("home.project.description")}
                 </p>
                 <Link
                   href="/bulk-orders"
@@ -622,7 +639,7 @@ export default async function HomePage() {
                     color: "var(--accent)",
                   }}
                 >
-                  Request Project Plan
+                  {homeT("home.project.requestPlan")}
                   <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
@@ -637,24 +654,24 @@ export default async function HomePage() {
               <div className="grid grid-cols-2 gap-4">
                 {[
                   {
-                    value: "3D",
-                    label: "Layout Guidance",
-                    sub: "Visual planning before production",
+                    value: homeT("home.project.card1.value"),
+                    label: homeT("home.project.card1.label"),
+                    sub: homeT("home.project.card1.sub"),
                   },
                   {
-                    value: "100%",
-                    label: "Tailored Specs",
-                    sub: "Dimensions, finish and utility",
+                    value: homeT("home.project.card2.value"),
+                    label: homeT("home.project.card2.label"),
+                    sub: homeT("home.project.card2.sub"),
                   },
                   {
-                    value: "6-step",
-                    label: "Execution Flow",
-                    sub: "Milestones with clear ownership",
+                    value: homeT("home.project.card3.value"),
+                    label: homeT("home.project.card3.label"),
+                    sub: homeT("home.project.card3.sub"),
                   },
                   {
-                    value: "Pan-India",
-                    label: "Delivery Network",
-                    sub: "Reliable logistics and setup",
+                    value: homeT("home.project.card4.value"),
+                    label: homeT("home.project.card4.label"),
+                    sub: homeT("home.project.card4.sub"),
                   },
                 ].map((s) => (
                   <div
@@ -699,7 +716,7 @@ export default async function HomePage() {
               className="text-xs tracking-[0.3em] uppercase font-medium mb-4"
               style={{ color: "var(--accent-text)" }}
             >
-              Client Voice
+              {homeT("home.clientVoice.badge")}
             </p>
             {highlightedTestimonial ? (
               <>
@@ -733,8 +750,7 @@ export default async function HomePage() {
               </>
             ) : (
               <p style={{ color: "var(--text-muted)" }}>
-                Trusted by homeowners and businesses across India for enduring
-                craft and practical design.
+                {homeT("home.clientVoice.fallback")}
               </p>
             )}
           </div>
@@ -749,7 +765,7 @@ export default async function HomePage() {
               className="text-xs tracking-[0.3em] uppercase font-medium mb-4"
               style={{ color: "var(--accent-text)" }}
             >
-              Studio Story
+              {homeT("home.story.badge")}
             </p>
             {latestStory ? (
               <>
@@ -771,13 +787,15 @@ export default async function HomePage() {
                 >
                   <span>{latestStory.category}</span>
                   <span>•</span>
-                  <span>{latestStory.readTime} min read</span>
+                  <span>
+                    {latestStory.readTime} {homeT("common.readTime")}
+                  </span>
                 </div>
                 <Link
                   href={`/blog/${latestStory.slug}`}
                   className="btn-outline"
                 >
-                  Read Story
+                  {homeT("home.story.read")}
                 </Link>
               </>
             ) : (
@@ -799,20 +817,20 @@ export default async function HomePage() {
                 className="text-xs tracking-[0.3em] uppercase font-medium mb-3"
                 style={{ color: "var(--accent-text)" }}
               >
-                From Our Workshop
+                {homeT("home.workshop.badge")}
               </p>
               <h2
                 className="font-display text-4xl sm:text-5xl"
                 style={{ color: "var(--text-primary)" }}
               >
-                Craft Stories
+                {homeT("home.workshop.title")}
               </h2>
             </div>
             <Link
               href="/blog"
               className="btn-outline text-sm shrink-0 self-start sm:self-auto"
             >
-              All Articles
+              {homeT("home.workshop.allArticles")}
               <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
                 <path
                   d="M2 7h10M8 3l4 4-4 4"
@@ -860,7 +878,7 @@ export default async function HomePage() {
                       className="text-xs"
                       style={{ color: "var(--text-faint)" }}
                     >
-                      {post.readTime} min read
+                      {post.readTime} {homeT("common.readTime")}
                     </span>
                   </div>
                   <h3
@@ -879,7 +897,7 @@ export default async function HomePage() {
                     className="inline-flex items-center gap-1.5 text-xs font-medium mt-auto"
                     style={{ color: "var(--accent-text)" }}
                   >
-                    Read article
+                    {homeT("common.readArticle")}
                     <svg width="12" height="12" fill="none" viewBox="0 0 14 14">
                       <path
                         d="M2 7h10M8 3l4 4-4 4"
@@ -910,27 +928,26 @@ export default async function HomePage() {
             className="text-xs tracking-[0.3em] uppercase font-medium mb-4"
             style={{ color: "var(--accent-text)" }}
           >
-            Ready to Build?
+            {homeT("home.final.badge")}
           </p>
           <h2
             className="font-display text-4xl sm:text-5xl mb-5"
             style={{ color: "var(--text-primary)" }}
           >
-            Shape Your Space With NhanHien
+            {homeT("home.final.title")}
           </h2>
           <p
             className="text-lg max-w-xl mx-auto mb-10"
             style={{ color: "var(--text-muted)" }}
           >
-            Bring us your room idea, project brief or quantity requirement and
-            we will turn it into a clear, buildable plan.
+            {homeT("home.final.description")}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/contact" className="btn-wood">
-              Get in Touch
+              {homeT("home.final.getInTouch")}
             </Link>
             <Link href="/products" className="btn-outline">
-              Browse Products
+              {homeT("home.final.browseProducts")}
             </Link>
           </div>
         </div>

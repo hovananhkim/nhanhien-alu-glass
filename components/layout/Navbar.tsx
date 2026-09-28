@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import CartIcon from "@/components/ui/CartIcon";
+import { t } from "@/lib/translations";
 
 interface NavSettings {
   nav_show_gallery: boolean;
@@ -103,7 +104,7 @@ export default function Navbar({ navSettings }: Props) {
                 className="font-display font-semibold text-xl tracking-tight"
                 style={{ color: solid ? "var(--text-primary)" : "white" }}
               >
-                Nhân Hiến
+                {t("brand.name")}
               </span>
               <span
                 className="block text-[10px] tracking-[0.2em] uppercase"
@@ -113,7 +114,7 @@ export default function Navbar({ navSettings }: Props) {
                     : "rgba(255,255,255,0.65)",
                 }}
               >
-                Nhôm kính & Nội thất
+                {t("brand.tagline")}
               </span>
             </div>
           </Link>
@@ -126,7 +127,7 @@ export default function Navbar({ navSettings }: Props) {
               className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
               style={linkStyle(pathname === "/")}
             >
-              Home
+              {t("nav.home")}
             </Link>
 
             {/* Products — always visible */}
@@ -137,7 +138,7 @@ export default function Navbar({ navSettings }: Props) {
                 pathname === "/products" || pathname.startsWith("/products/"),
               )}
             >
-              Products
+              {t("nav.products")}
             </Link>
 
             {/* Gallery — toggleable */}
@@ -147,7 +148,7 @@ export default function Navbar({ navSettings }: Props) {
                 className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
                 style={linkStyle(pathname === "/gallery")}
               >
-                Gallery
+                {t("nav.gallery")}
               </Link>
             )}
 
@@ -160,7 +161,7 @@ export default function Navbar({ navSettings }: Props) {
                   pathname === "/blog" || pathname.startsWith("/blog/"),
                 )}
               >
-                Blog
+                {t("nav.blog")}
               </Link>
             )}
 
@@ -180,7 +181,7 @@ export default function Navbar({ navSettings }: Props) {
                         : "rgba(255,255,255,0.8)",
                   }}
                 >
-                  Order Details
+                  {t("nav.orderDetails")}
                   <svg
                     width="14"
                     height="14"
@@ -252,7 +253,7 @@ export default function Navbar({ navSettings }: Props) {
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                           />
                         </svg>
-                        Bulk Orders
+                        {t("nav.bulkOrders")}
                       </Link>
                     )}
 
@@ -293,7 +294,7 @@ export default function Navbar({ navSettings }: Props) {
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                         />
                       </svg>
-                      Track Order
+                      {t("nav.trackOrder")}
                     </Link>
                   </div>
                 )}
@@ -307,7 +308,7 @@ export default function Navbar({ navSettings }: Props) {
                 className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
                 style={linkStyle(pathname === "/about")}
               >
-                About
+                {t("nav.about")}
               </Link>
             )}
 
@@ -318,7 +319,7 @@ export default function Navbar({ navSettings }: Props) {
                 className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
                 style={linkStyle(pathname === "/contact")}
               >
-                Contact
+                {t("nav.contact")}
               </Link>
             )}
           </div>
@@ -350,7 +351,7 @@ export default function Navbar({ navSettings }: Props) {
                     }
               }
             >
-              Get Quote
+              {t("nav.getQuote")}
               <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
                 <path
                   d="M2 7h10M8 3l4 4-4 4"
@@ -401,7 +402,7 @@ export default function Navbar({ navSettings }: Props) {
             {/* Home */}
             <MobileLink
               href="/"
-              label="Home"
+              label={t("nav.home")}
               active={pathname === "/"}
               onClose={() => setMenuOpen(false)}
             />
@@ -409,7 +410,7 @@ export default function Navbar({ navSettings }: Props) {
             {/* Products */}
             <MobileLink
               href="/products"
-              label="Products"
+              label={t("nav.products")}
               active={
                 pathname === "/products" || pathname.startsWith("/products/")
               }
@@ -420,7 +421,7 @@ export default function Navbar({ navSettings }: Props) {
             {navSettings.nav_show_gallery && (
               <MobileLink
                 href="/gallery"
-                label="Gallery"
+                label={t("nav.gallery")}
                 active={pathname === "/gallery"}
                 onClose={() => setMenuOpen(false)}
               />
@@ -430,7 +431,7 @@ export default function Navbar({ navSettings }: Props) {
             {navSettings.nav_show_blog && (
               <MobileLink
                 href="/blog"
-                label="Blog"
+                label={t("nav.blog")}
                 active={pathname === "/blog" || pathname.startsWith("/blog/")}
                 onClose={() => setMenuOpen(false)}
               />
@@ -466,7 +467,7 @@ export default function Navbar({ navSettings }: Props) {
                         d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                       />
                     </svg>
-                    Order Details
+                    {t("nav.orderDetails")}
                   </span>
                   <svg
                     width="14"
@@ -496,7 +497,7 @@ export default function Navbar({ navSettings }: Props) {
                     {navSettings.nav_show_bulk_orders && (
                       <MobileLink
                         href="/bulk-orders"
-                        label="Bulk Orders"
+                        label={t("nav.bulkOrders")}
                         active={pathname === "/bulk-orders"}
                         onClose={() => setMenuOpen(false)}
                         indent
@@ -505,7 +506,7 @@ export default function Navbar({ navSettings }: Props) {
                     {/* Order Tracking — live */}
                     <MobileLink
                       href="/track-order"
-                      label="Track Order"
+                      label={t("nav.trackOrder")}
                       active={pathname === "/track-order"}
                       onClose={() => setMenuOpen(false)}
                       indent
@@ -519,7 +520,7 @@ export default function Navbar({ navSettings }: Props) {
             {navSettings.nav_show_about && (
               <MobileLink
                 href="/about"
-                label="About"
+                label={t("nav.about")}
                 active={pathname === "/about"}
                 onClose={() => setMenuOpen(false)}
               />
@@ -529,7 +530,7 @@ export default function Navbar({ navSettings }: Props) {
             {navSettings.nav_show_contact && (
               <MobileLink
                 href="/contact"
-                label="Contact"
+                label={t("nav.contact")}
                 active={pathname === "/contact"}
                 onClose={() => setMenuOpen(false)}
               />
@@ -538,7 +539,7 @@ export default function Navbar({ navSettings }: Props) {
             {/* Inquiry List */}
             <MobileLink
               href="/inquiry-cart"
-              label="Inquiry List"
+              label={t("nav.inquiryList")}
               active={pathname === "/inquiry-cart"}
               onClose={() => setMenuOpen(false)}
               accent
@@ -552,7 +553,7 @@ export default function Navbar({ navSettings }: Props) {
                 color: "var(--text-muted)",
               }}
             >
-              <span className="text-sm">Dark Mode</span>
+              <span className="text-sm">{t("nav.darkMode")}</span>
               <ThemeToggle />
             </div>
           </div>

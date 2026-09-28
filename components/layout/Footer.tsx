@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "@/lib/translations";
 
 interface NavSettings {
   nav_show_gallery: boolean;
@@ -10,7 +11,7 @@ interface NavSettings {
 export default function Footer({ navSettings }: { navSettings: NavSettings }) {
   const socialLinks = [
     {
-      name: "Facebook",
+      name: t("social.facebook"),
       href: "#",
       icon: (
         <path
@@ -20,7 +21,7 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
       ),
     },
     {
-      name: "Instagram",
+      name: t("social.instagram"),
       href: "#",
       icon: (
         <>
@@ -45,7 +46,7 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
       ),
     },
     {
-      name: "LinkedIn",
+      name: t("social.linkedin"),
       href: "#",
       icon: (
         <>
@@ -120,13 +121,13 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
                   className="font-display font-semibold text-xl"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  NhanHien
+                  {t("brand.name")}
                 </span>
                 <span
                   className="block text-[10px] tracking-[0.2em] uppercase"
                   style={{ color: "var(--accent-text)" }}
                 >
-                  Fine Furniture
+                  {t("brand.tagline")}
                 </span>
               </div>
             </div>
@@ -134,8 +135,7 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
               className="text-sm leading-relaxed mb-5"
               style={{ color: "var(--text-muted)" }}
             >
-              Three decades of crafting premium furniture for homes, hotels and
-              institutions across India.
+              {t("footer.brandTagline")}
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
@@ -169,30 +169,30 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
               className="font-semibold text-sm tracking-wider uppercase mb-5"
               style={{ color: "var(--text-primary)" }}
             >
-              Quick Links
+              {t("footer.quickLinks")}
             </h4>
             <ul className="space-y-3">
               {[
-                { href: "/", label: "Home", show: true },
-                { href: "/products", label: "Products", show: true },
+                { href: "/", label: t("nav.home"), show: true },
+                { href: "/products", label: t("nav.products"), show: true },
                 {
                   href: "/gallery",
-                  label: "Gallery",
+                  label: t("nav.gallery"),
                   show: navSettings.nav_show_gallery,
                 },
                 {
                   href: "/bulk-orders",
-                  label: "Bulk Orders",
+                  label: t("nav.bulkOrders"),
                   show: navSettings.nav_show_bulk_orders,
                 },
                 {
                   href: "/about",
-                  label: "About Us",
+                  label: t("nav.about"),
                   show: navSettings.nav_show_about,
                 },
                 {
                   href: "/contact",
-                  label: "Contact",
+                  label: t("nav.contact"),
                   show: navSettings.nav_show_contact,
                 },
               ]
@@ -217,16 +217,16 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
               className="font-semibold text-sm tracking-wider uppercase mb-5"
               style={{ color: "var(--text-primary)" }}
             >
-              Categories
+              {t("footer.categories")}
             </h4>
             <ul className="space-y-3">
               {[
-                "Living Room",
-                "Bedroom",
-                "Dining",
-                "Office",
-                "Outdoor",
-                "Storage",
+                t("category.livingRoom"),
+                t("category.bedroom"),
+                t("category.dining"),
+                t("category.office"),
+                t("category.outdoor"),
+                t("category.storage"),
               ].map((cat) => (
                 <li key={cat}>
                   <Link
@@ -247,7 +247,7 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
               className="font-semibold text-sm tracking-wider uppercase mb-5"
               style={{ color: "var(--text-primary)" }}
             >
-              Contact Us
+              {t("footer.contactUs")}
             </h4>
             <ul className="space-y-4">
               {[
@@ -317,14 +317,14 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
             reserved.
           </p>
           <div className="flex gap-5">
-            {["Privacy Policy", "Terms of Service"].map((t) => (
+            {["Privacy Policy", "Terms of Service"].map((label) => (
               <Link
-                key={t}
+                key={label}
                 href="#"
                 className="text-xs transition-colors"
                 style={{ color: "var(--text-faint)" }}
               >
-                {t}
+                {label}
               </Link>
             ))}
           </div>

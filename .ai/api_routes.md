@@ -1,9 +1,9 @@
-# NhanHien — API Routes Reference
+# {{t('ai.api_routes.header')}}
 
-> Open this file when touching any file in app/api/ or calling an API from a component.
+> {{t('ai.api_routes.open_note')}}
 
-**Auth rule:** All admin-write routes call `getAdminSession()` → return 401 if null.  
-**Public routes:** products GET, categories GET, blog GET (published only), track-order GET, inquiries POST, orders POST.
+**{{t('ai.api_routes.auth_rule_label')}}:** {{t('ai.api_routes.auth_rule')}}  
+**{{t('ai.api_routes.public_routes_label')}}:** {{t('ai.api_routes.public_routes')}}
 
 ---
 
