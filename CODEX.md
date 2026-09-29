@@ -168,6 +168,19 @@ Nếu SMTP chưa cấu hình, hệ thống có thể bỏ qua email mà không l
 - Kiểm tra logic ở cả server và client
 - Không sửa tạm theo kiểu dùng console log / hardcode mà không hiểu context
 
+### Quy tắc màu sắc nút ADD trong Admin
+
+- Tất cả nút tạo mới (`Add`, `Thêm`, dấu `+` để thêm bản ghi), kể cả nút trong modal/form, phải dùng nền đen `bg-charcoal-800` (#1c1917), chữ trắng `text-white` và hover `hover:bg-charcoal-900` (#0c0a09).
+- Dùng `transition-colors`; khi bị vô hiệu hóa, dùng `disabled:opacity-50 disabled:cursor-not-allowed` và thuộc tính `disabled` trên button.
+- Không dùng màu `wood`, màu riêng của từng module hoặc mã màu hardcode cho nút ADD. Giữ kích thước và bố cục phù hợp với giao diện hiện có.
+- Áp dụng cho cả module mới và khi sửa nút tạo mới của module hiện có, ví dụ: Thêm nhân viên, Chấm công, Ghi nhận chi tiền, Add Product, Add Item.
+
+Mẫu class màu sắc và trạng thái:
+
+```tsx
+className="bg-charcoal-800 hover:bg-charcoal-900 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+```
+
 ## 8. Các phase chỉnh sửa đề xuất
 
 ### Phase 1 — Foundation / stabilize

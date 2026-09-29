@@ -235,3 +235,43 @@ model InventoryTransaction {
 
   createdAt        DateTime @default(now())
 }
+
+// Employees are payroll records only; they have no login credentials.
+model Employee {
+  id          String @id @default(cuid())
+  name        String
+  phone       String?
+  position    String?
+  notes       String?
+  dailyRate   Int
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  attendance  EmployeeAttendance[]
+  payments    EmployeePayment[]
+}
+
+model EmployeeAttendance {
+  id          String @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  date        String // YYYY-MM-DD, business date in Vietnam
+  units       Float
+  dailyRate   Int // Snapshot; changing the employee rate never changes history
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([employeeId, date])
+}
+
+model EmployeePayment {
+  id          String @id // Client operation UUID prevents duplicate submissions
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  date        String
+  type        String // ADVANCE | SALARY
+  amount      Int // Whole VND
+  notes       String?
+  createdAt   DateTime @default(now())
+  @@index([employeeId, date])
+}

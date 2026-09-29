@@ -349,6 +349,7 @@ const NAV: NavItem[] = [
     href: "/admin/analytics",
     icon: Icon.analytics,
   },
+  { type: "link", label: t("admin.nav.employees"), href: "/admin/employees", icon: Icon.team },
   {
     type: "group",
     key: "catalogue",

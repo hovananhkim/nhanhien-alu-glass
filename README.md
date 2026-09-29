@@ -352,3 +352,30 @@ Only the upload API route (`app/api/upload/route.ts`) needs updating — all oth
 ## 📄 License
 
 Private — All rights reserved, Kathan Patel.
+
+## Quản lý Nhân viên
+
+Mục `/admin/employees` dành cho quản trị viên đang hoạt động. Hồ sơ nhân viên
+độc lập với mục Nhân sự (`/admin/users`), không tạo tài khoản đăng nhập.
+
+- Thêm/sửa hồ sơ, đơn giá mỗi công, đánh dấu nghỉ việc và giữ lịch sử.
+- Chấm công theo ngày: 0, 0.5, 1, 1.5 hoặc 2 công. Mỗi nhân viên có một bản ghi
+  mỗi ngày; lưu lại ngày đã có sẽ cập nhật bản ghi. Đơn giá được lưu theo ngày.
+- Ghi nhận tiền ứng và tiền trả lương thực tế, bằng VNĐ nguyên đồng.
+- Tổng kết theo tháng: số dư đầu kỳ + lương phát sinh − tiền ứng − tiền trả lương.
+  Số dương là còn phải trả nhân viên; số âm là đã trả dư/ứng trước.
+  Tổng đã trả từ trước đến nay bao gồm cả ứng lương và trả lương ở mọi tháng.
+- Có thể xóa bản ghi nhập nhầm sau khi xác nhận; tổng kết tự tính lại.
+
+Cập nhật cơ sở dữ liệu trên môi trường triển khai theo quy trình hiện tại của dự án:
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
+Kiểm tra công thức và API trên SQLite tạm riêng biệt:
+
+```bash
+node --test tests/employees.test.cjs
+```
