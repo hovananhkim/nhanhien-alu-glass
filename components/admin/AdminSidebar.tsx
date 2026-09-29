@@ -319,7 +319,7 @@ const Icon = {
 };
 
 // ── Nav structure ─────────────────────────────────────────────
-type Child = { label: string; href: string; icon: React.ReactNode };
+type Child = { label: string; href: string; icon: React.ReactNode; exact?: boolean };
 type Group = {
   key: string;
   label: string;
@@ -349,7 +349,17 @@ const NAV: NavItem[] = [
     href: "/admin/analytics",
     icon: Icon.analytics,
   },
-  { type: "link", label: t("admin.nav.employees"), href: "/admin/employees", icon: Icon.team },
+  {
+    type: "group",
+    key: "employees",
+    label: t("admin.nav.employees"),
+    icon: Icon.team,
+    children: [
+      { label: t("admin.nav.employeesAll"), href: "/admin/employees", icon: Icon.team, exact: true },
+      { label: t("admin.nav.employeeAttendance"), href: "/admin/employees/attendance", icon: Icon.orders },
+      { label: t("admin.nav.employeePayments"), href: "/admin/employees/payments", icon: Icon.analytics },
+    ],
+  },
   {
     type: "group",
     key: "catalogue",
@@ -412,7 +422,7 @@ const SUPER_ADMIN_ITEMS: Child[] = [
 
 // ── Helpers ───────────────────────────────────────────────────
 function isChildActive(children: Child[], pathname: string) {
-  return children.some((c) => pathname.startsWith(c.href));
+  return children.some((c) => c.exact ? pathname === c.href : pathname === c.href || pathname.startsWith(`${c.href}/`));
 }
 
 // ── Main component ────────────────────────────────────────────
@@ -534,6 +544,7 @@ export default function AdminSidebar({
               {/* Group header — toggle button */}
               <button
                 onClick={() => toggle(item.key)}
+                aria-expanded={isOpen}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
                   hasActive
                     ? "text-white"
@@ -558,11 +569,12 @@ export default function AdminSidebar({
               {isOpen && (
                 <div className="mt-0.5 ml-3 pl-3 border-l border-white/8 space-y-0.5">
                   {item.children.map((child) => {
-                    const childActive = pathname.startsWith(child.href);
+                    const childActive = child.exact ? pathname === child.href : pathname === child.href || pathname.startsWith(`${child.href}/`);
                     return (
                       <Link
                         key={child.href}
                         href={child.href}
+                        aria-current={childActive ? "page" : undefined}
                         className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
                           childActive
                             ? "bg-white/10 text-white font-medium"

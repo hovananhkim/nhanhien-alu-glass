@@ -10,7 +10,7 @@ const { NextRequest } = require('next/server')
 
 function loadTS(file, overrides = {}) {
   const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText
   const module = { exports: {} }
   new Function('require', 'module', 'exports', source)(name => overrides[name] || require(name), module, module.exports)
@@ -92,4 +92,27 @@ test('employee API: authorization, independent profiles, attendance history, pay
     await prisma.$disconnect()
     fs.rmSync(temp, { recursive: true, force: true })
   }
+})
+
+
+test('attendance grid follows month length, leap years and existing fractional work', () => {
+  const React = require('react')
+  const { renderToStaticMarkup } = require('react-dom/server')
+  const Table = loadTS('components/admin/AttendanceTable.tsx').default
+  const employee = { id: 'e1', name: 'Nhân viên A', isActive: true, attendance: [
+    { date: '2026-09-01', units: 1 }, { date: '2026-09-02', units: 0.5 }, { date: '2026-08-01', units: 2 },
+  ] }
+  for (const [month, days] of [['2026-02', 28], ['2028-02', 29], ['2026-09', 30], ['2026-12', 31], ['2100-02', 28]]) {
+    const html = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month, busy: false, onToggle() {} }))
+    assert.equal((html.match(/type="checkbox"/g) || []).length, days)
+    assert.equal((html.match(/scope="col"/g) || []).length, days + 2)
+    if (month === '2026-09') {
+      assert.equal((html.match(/checked=""/g) || []).length, 2)
+      assert.match(html, />1,5<\/td>/)
+    }
+  }
+  const empty = renderToStaticMarkup(React.createElement(Table, { employees: [], month: '2026-09', busy: false, onToggle() {} }))
+  assert.match(empty, /colSpan="32"/i)
+  const busy = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month: '2026-09', busy: true, onToggle() {} }))
+  assert.equal((busy.match(/disabled=""/g) || []).length, 30)
 })

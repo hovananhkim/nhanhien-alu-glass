@@ -216,7 +216,8 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
   outline: none;
 }
-.form-input:focus {
+.form-input:focus,
+.admin-field-control:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(168,94,46,0.12);
 }

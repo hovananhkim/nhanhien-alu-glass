@@ -168,6 +168,15 @@ Nếu SMTP chưa cấu hình, hệ thống có thể bỏ qua email mà không l
 - Kiểm tra logic ở cả server và client
 - Không sửa tạm theo kiểu dùng console log / hardcode mà không hiểu context
 
+### Quy tắc bắt buộc về locales cho mọi nội dung giao diện
+
+- Mọi nội dung giao diện mới hoặc được chỉnh sửa phải lấy từ `locales/vi.json` và `locales/en.json` qua `t()` trong `lib/translations.ts`. Không hardcode tiếng Việt hoặc tiếng Anh trong JSX, thuộc tính hay biến chứa nội dung giao diện.
+- Phạm vi gồm: tiêu đề, label, tên button/link, header bảng, lựa chọn dropdown, placeholder, trạng thái, thông báo rỗng, lỗi/thành công, xác nhận, tooltip (`title`), `aria-label` và nội dung chỉ dành cho trình đọc màn hình.
+- Thêm key có nghĩa theo module (ví dụ `admin.employees.table.add`) và cập nhật đủ hai locales trong cùng thay đổi. Tái sử dụng key có sẵn khi đúng ngữ nghĩa.
+- Câu có dữ liệu động phải đặt cả câu trong locales với placeholder như `{count}`, `{name}`; không ghép số/tên với một đoạn chữ hardcode. Khi thay tên do người dùng nhập, dùng hàm thay thế để giữ nguyên ký tự đặc biệt.
+- Dữ liệu người dùng nhập (tên, chức vụ, ghi chú), mã kỹ thuật, CSS, URL và giá trị enum không phải chuỗi dịch. Số, ngày, tiền tệ dùng bộ định dạng phù hợp; không hardcode ký hiệu tiền tệ trong JSX.
+- Trước khi hoàn tất, rà soát toàn bộ file giao diện đã sửa, kiểm tra cả nhãn ẩn/tooltip, xác nhận mọi key tồn tại trong hai locales và không còn chuỗi giao diện hardcode. Đây là bước kiểm tra bắt buộc, không bỏ qua với thay đổi CSS hoặc component nhỏ.
+
 ### Quy tắc màu sắc nút ADD trong Admin
 
 - Tất cả nút tạo mới (`Add`, `Thêm`, dấu `+` để thêm bản ghi), kể cả nút trong modal/form, phải dùng nền đen `bg-charcoal-800` (#1c1917), chữ trắng `text-white` và hover `hover:bg-charcoal-900` (#0c0a09).
@@ -180,6 +189,30 @@ Mẫu class màu sắc và trạng thái:
 ```tsx
 className="bg-charcoal-800 hover:bg-charcoal-900 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 ```
+
+### Quy tắc Field, thanh tìm kiếm và dropdown trong Admin
+
+- Tất cả control một dòng trong Field (`text`, `tel`, `number`, `date`, `month`, `select`) dùng cùng chiều cao **40px** (`h-10`), `text-sm`, `rounded-lg`, border 1px; không dựa vào padding dọc mặc định của trình duyệt để tính chiều cao.
+- Field dùng label phía trên với `leading-5`, cách control `gap-1`. Control một dòng dùng `py-0`; các control cạnh nhau phải thẳng hàng. Textarea là ngoại lệ nhiều dòng: `min-h-20 resize-y`; checkbox giữ kích thước riêng.
+- Các Field tìm kiếm/lọc nằm trên **cùng một hàng**, dùng `flex flex-nowrap items-end gap-3`. Màn hình hẹp cuộn ngang trong thanh lọc (`overflow-x-auto`), không kéo rộng cả trang.
+- Width phải vừa loại dữ liệu: tháng khoảng `w-44`, tìm tên/số điện thoại khoảng `w-52`, dropdown `w-fit`/`w-auto` theo lựa chọn dài nhất. Field trong thanh lọc dùng `shrink-0`, không tự giãn `flex-1` hoặc chiếm toàn hàng. Input trong form nhập hồ sơ vẫn có thể dùng `w-full`.
+- Dropdown theo mẫu `EmployeeSelect` của phần Nhân viên: wrapper `relative block w-fit max-w-full`, select `h-10 w-auto max-w-full appearance-none pl-3 pr-9 py-0`.
+- Dùng một icon chevron hướng xuống 14px thay mũi tên native; đặt `absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none`, `aria-hidden="true"`. Mũi tên cách mép phải **12px**; nội dung có khoảng trống riêng nên không đè lên mũi tên.
+- Dropdown phải giữ label, trạng thái focus rõ ràng, thao tác bàn phím native và `disabled`. Dùng chung class/component để tránh lệch chiều cao và padding giữa các form.
+- Focus của input, textarea và dropdown phải giống form Sản phẩm: viền `var(--accent)` màu cam và quầng `0 0 0 3px rgba(168,94,46,0.12)`. Dùng `.form-input` hoặc `.admin-field-control` để chia sẻ quy tắc CSS; không dùng viền/ring `charcoal` màu đen khi focus. Màu đen của nút ADD là quy tắc riêng, không áp dụng cho focus của Field.
+- Khi thêm hoặc sửa Field, kiểm tra input tháng/ngày, text và select trên cùng hàng; không tạo style dropdown riêng khác chuẩn này.
+
+### Quy tắc bảng danh sách trong Admin
+
+- Dùng trang Sản phẩm (`app/(admin)/admin/products/page.tsx`) làm mẫu chuẩn cho trang danh sách, bao gồm Nhân viên → Tất cả. Dùng HTML `table`, mỗi bản ghi một dòng.
+- Đầu trang: tiêu đề `text-2xl font-display font-semibold text-charcoal-800`, số lượng bản ghi `text-stone-400 text-sm mt-1`, nút Thêm bên phải theo quy tắc ADD; cách bảng `mb-8`.
+- Khung bảng: `bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden`. Dùng vùng `overflow-x-auto` khi bảng rộng.
+- Header nền trắng, viền dưới `border-stone-100`; chữ `text-xs font-semibold text-stone-400 uppercase tracking-wider`. Cột đầu `px-6 py-4`, các cột khác `px-4 py-4`.
+- Thân bảng: `divide-y divide-stone-50`; dòng `hover:bg-stone-50 transition-colors`. Nội dung chính `text-sm text-charcoal-700`; tên `font-medium text-sm text-charcoal-800`, mô tả phụ `text-xs text-stone-400`.
+- Cột đầu có ảnh hoặc chữ viết tắt trong ô `w-12 h-12 rounded-lg bg-stone-100`; trạng thái dùng badge `text-xs rounded-full font-medium`, xanh cho đang hoạt động, đỏ cho ngừng hoạt động.
+- Cột Thao tác căn phải, dùng icon nhỏ có `title` và `aria-label`; chỉ hiển thị thao tác đã hỗ trợ. Không thêm thao tác xóa hồ sơ có lịch sử chỉ để giống mẫu.
+- Giữ tên, trạng thái và thao tác trên màn hình nhỏ; ẩn các cột phụ theo breakpoint như trang Sản phẩm. Có thông báo khi danh sách trống.
+- Nhân viên → Tất cả hiển thị mọi hồ sơ, gồm cả nhân viên đã nghỉ. Chấm công, bộ lọc tháng, tổng kết lương và thanh toán nằm ở các mục riêng, không hiển thị mặc định bên dưới bảng danh sách.
 
 ## 8. Các phase chỉnh sửa đề xuất
 
