@@ -1,12 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { t, type Locale } from "@/lib/translations";
-
-const locale: Locale = "vi";
+import { t } from "@/lib/translations";
 
 export const metadata: Metadata = {
-  title: `${t("admin.dashboard.title", "vi")} | Admin`,
+  title: `${t("admin.dashboard.title")} | Admin`,
 };
 
 async function getDashboardData() {
@@ -94,18 +92,18 @@ function getStatusLabel(status: string) {
     DELIVERED: "admin.status.delivered",
   };
 
-  return t(map[status] || "admin.status.unknown", locale);
+  return t(map[status] || "admin.status.unknown");
 }
 
 function timeAgo(date: Date | string) {
   const d = new Date(date);
   const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (diff < 60) return t("admin.time.justNow", locale);
+  if (diff < 60) return t("admin.time.justNow");
   if (diff < 3600)
-    return `${Math.floor(diff / 60)} ${t("admin.time.minutesAgo", locale)}`;
+    return `${Math.floor(diff / 60)} ${t("admin.time.minutesAgo")}`;
   if (diff < 86400)
-    return `${Math.floor(diff / 3600)} ${t("admin.time.hoursAgo", locale)}`;
-  return `${Math.floor(diff / 86400)} ${t("admin.time.daysAgo", locale)}`;
+    return `${Math.floor(diff / 3600)} ${t("admin.time.hoursAgo")}`;
+  return `${Math.floor(diff / 86400)} ${t("admin.time.daysAgo")}`;
 }
 
 export default async function AdminDashboard() {
@@ -124,9 +122,9 @@ export default async function AdminDashboard() {
 
   const stats = [
     {
-      label: t("admin.dashboard.totalOrders", locale),
+      label: t("admin.dashboard.totalOrders"),
       value: totalOrders,
-      sub: `${pendingOrders} ${t("admin.dashboard.pending", locale)}`,
+      sub: `${pendingOrders} ${t("admin.dashboard.pending")}`,
       href: "/admin/orders",
       color: "text-blue-600",
       bg: "bg-blue-50",
@@ -148,9 +146,9 @@ export default async function AdminDashboard() {
       ),
     },
     {
-      label: t("admin.dashboard.inquiries", locale),
+      label: t("admin.dashboard.inquiries"),
       value: totalInquiries,
-      sub: `${unreadInquiries} ${t("admin.dashboard.unread", locale)}`,
+      sub: `${unreadInquiries} ${t("admin.dashboard.unread")}`,
       href: "/admin/inquiries",
       color: "text-amber-600",
       bg: "bg-amber-50",
@@ -172,9 +170,9 @@ export default async function AdminDashboard() {
       ),
     },
     {
-      label: t("admin.dashboard.products", locale),
+      label: t("admin.dashboard.products"),
       value: totalProducts,
-      sub: t("admin.dashboard.inCatalogue", locale),
+      sub: t("admin.dashboard.inCatalogue"),
       href: "/admin/products",
       color: "text-wood-600",
       bg: "bg-wood-50",
@@ -196,9 +194,9 @@ export default async function AdminDashboard() {
       ),
     },
     {
-      label: t("admin.dashboard.categories", locale),
+      label: t("admin.dashboard.categories"),
       value: totalCategories,
-      sub: t("admin.dashboard.productGroups", locale),
+      sub: t("admin.dashboard.productGroups"),
       href: "/admin/categories",
       color: "text-purple-600",
       bg: "bg-purple-50",
@@ -226,10 +224,10 @@ export default async function AdminDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-display font-semibold text-charcoal-800">
-          {t("admin.dashboard.title", locale)}
+          {t("admin.dashboard.title")}
         </h1>
         <p className="text-stone-400 text-sm mt-1">
-          {t("admin.dashboard.subtitle", locale)}
+          {t("admin.dashboard.subtitle")}
         </p>
       </div>
 
@@ -273,15 +271,15 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="mb-8 bg-white rounded-2xl border border-stone-100 shadow-sm p-6">
-        <p className="text-xs text-stone-400 mb-1">
-          {t("admin.dashboard.revenueForecast", locale)}{" "}
-          {t("admin.dashboard.thisMonth", locale)}
+          <p className="text-xs text-stone-400 mb-1">
+          {t("admin.dashboard.revenueForecast")} {" "}
+          {t("admin.dashboard.thisMonth")}
         </p>
         <p className="text-2xl font-display font-semibold text-charcoal-800">
           ₹{revenueForecast.toLocaleString("en-IN")}
         </p>
         <p className="text-sm text-stone-500 mt-1">
-          {t("admin.dashboard.ordersExpected", locale)}{" "}
+          {t("admin.dashboard.ordersExpected")}{" "}
           <span className="font-medium text-charcoal-700">
             {forecastOrderCount}
           </span>
@@ -292,20 +290,20 @@ export default async function AdminDashboard() {
         {/* Recent Orders */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-100 shadow-sm">
           <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100">
-            <h2 className="font-semibold text-charcoal-700">
-              {t("admin.dashboard.recentOrders", locale)}
+              <h2 className="font-semibold text-charcoal-700">
+              {t("admin.dashboard.recentOrders")}
             </h2>
             <Link
               href="/admin/orders"
               className="text-xs text-wood-600 hover:text-wood-700 font-medium"
             >
-              {t("admin.dashboard.viewAll", locale)}
+              {t("admin.dashboard.viewAll")}
             </Link>
           </div>
           <div className="divide-y divide-stone-50">
             {recentOrders.length === 0 ? (
-              <div className="px-6 py-10 text-center text-stone-400 text-sm">
-                {t("admin.dashboard.noOrders", locale)}
+                <div className="px-6 py-10 text-center text-stone-400 text-sm">
+                {t("admin.dashboard.noOrders")}
               </div>
             ) : (
               recentOrders.map((order) => (
@@ -326,8 +324,7 @@ export default async function AdminDashboard() {
                             : "bg-stone-100 text-stone-500"
                         }`}
                       >
-                        {t(`order.type.${order.orderType}`, locale) ||
-                          order.orderType}
+                        {t(`order.type.${order.orderType}`) || order.orderType}
                       </span>
                     </div>
                     <div className="text-xs text-stone-400 truncate">
@@ -352,19 +349,19 @@ export default async function AdminDashboard() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm">
           <div className="flex items-center justify-between px-6 py-5 border-b border-stone-100">
             <h2 className="font-semibold text-charcoal-700">
-              {t("admin.dashboard.recentInquiries", locale)}
+              {t("admin.dashboard.recentInquiries")}
             </h2>
-            <Link
+              <Link
               href="/admin/inquiries"
               className="text-xs text-wood-600 hover:text-wood-700 font-medium"
             >
-              {t("admin.dashboard.viewAll", locale)}
+              {t("admin.dashboard.viewAll")}
             </Link>
           </div>
           <div className="divide-y divide-stone-50">
             {recentInquiries.length === 0 ? (
-              <div className="px-6 py-10 text-center text-stone-400 text-sm">
-                {t("admin.dashboard.noInquiries", locale)}
+                <div className="px-6 py-10 text-center text-stone-400 text-sm">
+                {t("admin.dashboard.noInquiries")}
               </div>
             ) : (
               recentInquiries.map((inquiry) => (
@@ -393,33 +390,33 @@ export default async function AdminDashboard() {
       {/* Quick Actions */}
       <div className="mt-6 bg-white rounded-2xl border border-stone-100 shadow-sm p-6">
         <h2 className="font-semibold text-charcoal-700 mb-4">
-          {t("admin.dashboard.quickActions", locale)}
+          {t("admin.dashboard.quickActions")}
         </h2>
         <div className="flex flex-wrap gap-3">
           {[
             {
               href: "/admin/analytics",
-              label: t("admin.dashboard.analyticsExport", locale),
+              label: t("admin.dashboard.analyticsExport"),
             },
             {
               href: "/admin/manufacturing-cost",
-              label: t("admin.dashboard.manufacturingCostReport", locale),
+              label: t("admin.dashboard.manufacturingCostReport"),
             },
             {
               href: "/admin/products/new",
-              label: t("admin.dashboard.addProduct", locale),
+              label: t("admin.dashboard.addProduct"),
             },
             {
               href: "/admin/categories",
-              label: t("admin.dashboard.manageCategories", locale),
+              label: t("admin.dashboard.manageCategories"),
             },
             {
               href: "/admin/orders",
-              label: t("admin.dashboard.viewAllOrders", locale),
+              label: t("admin.dashboard.viewAllOrders"),
             },
             {
               href: "/admin/inquiries",
-              label: t("admin.dashboard.readInquiries", locale),
+              label: t("admin.dashboard.readInquiries"),
             },
           ].map((a) => (
             <Link

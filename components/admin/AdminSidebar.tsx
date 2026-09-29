@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { t } from "@/lib/translations";
 import { usePathname, useRouter } from "next/navigation";
 
 // ── Icons (extracted for readability) ────────────────────────
@@ -337,47 +338,47 @@ type NavItem = StandaloneItem | ({ type: "group" } & Group);
 const NAV: NavItem[] = [
   {
     type: "link",
-    label: "Dashboard",
+    label: t("admin.nav.dashboard"),
     href: "/admin",
     icon: Icon.dashboard,
     exact: true,
   },
   {
     type: "link",
-    label: "Analytics",
+    label: t("admin.nav.analytics"),
     href: "/admin/analytics",
     icon: Icon.analytics,
   },
   {
     type: "group",
     key: "catalogue",
-    label: "Catalogue",
+    label: t("admin.nav.catalogue"),
     icon: Icon.catalogue,
     children: [
-      { label: "Products", href: "/admin/products", icon: Icon.products },
-      { label: "Categories", href: "/admin/categories", icon: Icon.categories },
-      { label: "Gallery", href: "/admin/gallery", icon: Icon.gallery },
+      { label: t("admin.nav.products"), href: "/admin/products", icon: Icon.products },
+      { label: t("admin.nav.categories"), href: "/admin/categories", icon: Icon.categories },
+      { label: t("admin.nav.gallery"), href: "/admin/gallery", icon: Icon.gallery },
     ],
   },
   {
     type: "group",
     key: "sales",
-    label: "Sales & CRM",
+    label: t("admin.nav.sales"),
     icon: Icon.sales,
     children: [
-      { label: "Orders", href: "/admin/orders", icon: Icon.orders },
-      { label: "Inquiries", href: "/admin/inquiries", icon: Icon.inquiries },
+      { label: t("admin.nav.orders"), href: "/admin/orders", icon: Icon.orders },
+      { label: t("admin.nav.inquiries"), href: "/admin/inquiries", icon: Icon.inquiries },
     ],
   },
   {
     type: "group",
     key: "manufacturing",
-    label: "Manufacturing",
+    label: t("admin.nav.manufacturing"),
     icon: Icon.mfg,
     children: [
-      { label: "Inventory", href: "/admin/inventory", icon: Icon.inventory },
+      { label: t("admin.nav.inventory"), href: "/admin/inventory", icon: Icon.inventory },
       {
-        label: "Cost Report",
+        label: t("admin.nav.costReport"),
         href: "/admin/manufacturing-cost",
         icon: Icon.analytics,
       },
@@ -386,17 +387,17 @@ const NAV: NavItem[] = [
   {
     type: "group",
     key: "content",
-    label: "Content",
+    label: t("admin.nav.content"),
     icon: Icon.content,
     children: [
-      { label: "Blog", href: "/admin/blog", icon: Icon.blog },
+      { label: t("admin.nav.blog"), href: "/admin/blog", icon: Icon.blog },
       {
-        label: "Testimonials",
+        label: t("admin.nav.testimonials"),
         href: "/admin/testimonials",
         icon: Icon.testimonials,
       },
       {
-        label: "Content & Nav",
+        label: t("admin.nav.contentNav"),
         href: "/admin/content",
         icon: Icon.navSettings,
       },
@@ -405,7 +406,7 @@ const NAV: NavItem[] = [
 ];
 
 const SUPER_ADMIN_ITEMS: Child[] = [
-  { label: "Team", href: "/admin/users", icon: Icon.team },
+  { label: t("admin.nav.team"), href: "/admin/users", icon: Icon.team },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -490,16 +491,16 @@ export default function AdminSidebar({
           </div>
           <div>
             <div className="text-white font-semibold text-sm font-display leading-none">
-              NhanHien
+              {t("brand.name")}
             </div>
-            <div className="text-stone-500 text-[10px] mt-0.5">Admin Panel</div>
+            <div className="text-stone-500 text-[10px] mt-0.5">{t("admin.nav.adminPanel")}</div>
           </div>
         </div>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-0.5">
-        {NAV.map((item, idx) => {
+        {NAV.map((item) => {
           // ── Standalone link ──
           if (item.type === "link") {
             const isActive = item.exact
@@ -584,7 +585,7 @@ export default function AdminSidebar({
         {isSuperAdmin && (
           <div className="pt-3 mt-1 border-t border-white/5">
             <p className="text-stone-600 text-[9px] uppercase tracking-widest font-semibold px-3 pb-1.5">
-              Super Admin
+              {t("admin.nav.superAdmin")}
             </p>
             {SUPER_ADMIN_ITEMS.map((item) => {
               const isActive = pathname.startsWith(item.href);
@@ -637,14 +638,14 @@ export default function AdminSidebar({
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-stone-500 hover:text-white hover:bg-white/5 transition-all"
         >
           {Icon.external}
-          View Website
+          {t("admin.nav.viewWebsite")}
         </Link>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
         >
           {Icon.logout}
-          Logout
+          {t("admin.nav.logout")}
         </button>
       </div>
     </aside>

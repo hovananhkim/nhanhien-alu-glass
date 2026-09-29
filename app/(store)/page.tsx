@@ -64,8 +64,7 @@ export default async function HomePage() {
   const spotlightCategories = categories.slice(0, 4);
   const latestStory = blogPosts[0];
   const highlightedTestimonial = testimonials[0];
-  const locale = "vi" as const;
-  const homeT = (key: string) => t(key, locale);
+  const homeT = (key: string) => t(key);
 
   return (
     <div style={{ background: "var(--bg-base)" }}>
