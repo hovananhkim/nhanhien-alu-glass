@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { useRouter } from 'next/navigation'
 
 const statuses = ['PENDING', 'CONFIRMED', 'IN_PRODUCTION', 'DELIVERED', 'CANCELLED']
@@ -14,6 +15,7 @@ export default function OrderStatusUpdater({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { notify } = useAdminFeedback()
 
   const save = async (nextStatus: string, nextDeliveryDate: string) => {
     setSaving(true)
@@ -30,6 +32,7 @@ export default function OrderStatusUpdater({
       const json = await res.json().catch(() => null)
       throw new Error(json?.error || 'Failed to update order')
     }
+    notify()
     router.refresh()
     setSaving(false)
   }

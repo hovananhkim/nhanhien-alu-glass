@@ -1,4 +1,6 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t as feedbackText } from '@/lib/translations'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +11,7 @@ interface Testimonial {
 const empty = { name: '', role: '', location: '', quote: '', rating: 5, featured: true }
 
 export default function TestimonialsManager({ initialItems }: { initialItems: Testimonial[] }) {
+  const { notify, confirmAction } = useAdminFeedback()
   const [items, setItems]   = useState(initialItems)
   const [form, setForm]     = useState(empty)
   const [editId, setEditId] = useState<string | null>(null)
@@ -29,19 +32,23 @@ export default function TestimonialsManager({ initialItems }: { initialItems: Te
         body: JSON.stringify(form),
       })
       if (!res.ok) { setError((await res.json()).error || 'Failed'); return }
-      await refresh(); reset(); router.refresh()
+      notify(); await refresh(); reset(); router.refresh()
     } catch { setError('Something went wrong') }
     setSaving(false)
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this testimonial?')) return
-    await fetch(`/api/testimonials/${id}`, { method: 'DELETE' })
+    if (!(await confirmAction())) return
+    const response = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify(feedbackText('admin.feedback.deleted'))
     await refresh(); router.refresh()
   }
 
   const toggleFeatured = async (t: Testimonial) => {
-    await fetch(`/api/testimonials/${t.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ featured: !t.featured }) })
+    const response = await fetch(`/api/testimonials/${t.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ featured: !t.featured }) }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify()
     setItems(p => p.map(i => i.id === t.id ? { ...i, featured: !i.featured } : i))
   }
 

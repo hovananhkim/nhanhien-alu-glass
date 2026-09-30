@@ -1,17 +1,19 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { Employee } from '@/lib/employees'
 import { t } from '@/lib/translations'
 
 interface Props {
+  feedback?: ReactNode
   employees: Employee[]
   onAdd: () => void
   onEdit: (employee: Employee) => void
 }
 
-export default function EmployeesTable({ employees, onAdd, onEdit }: Props) {
+export default function EmployeesTable({ employees, onAdd, onEdit, feedback }: Props) {
   return <>
-    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div className="admin-page-header">
       <div>
         <h1 className="text-2xl font-display font-semibold text-charcoal-800">{t('admin.employees.table.title')}</h1>
         <p className="text-stone-400 text-sm mt-1">{t('admin.employees.table.count').replace('{count}', String(employees.length))}</p>
@@ -21,6 +23,7 @@ export default function EmployeesTable({ employees, onAdd, onEdit }: Props) {
         {t('admin.employees.table.add')}
       </button>
     </div>
+    {feedback}
     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">

@@ -1,4 +1,6 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t as feedbackText } from '@/lib/translations'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -24,6 +26,7 @@ const emptyForm = {
 }
 
 export default function AdminGalleryClient({ initialItems }: { initialItems: GalleryItem[] }) {
+  const { notify, confirmAction } = useAdminFeedback()
   const [items, setItems]           = useState(initialItems)
   const [form, setForm]             = useState(emptyForm)
   const [uploadedUrl, setUploadedUrl] = useState('')   // ← stored separately, not in form
@@ -121,7 +124,7 @@ export default function AdminGalleryClient({ initialItems }: { initialItems: Gal
       }
       const refreshed = await fetch('/api/gallery').then(r => r.json())
       setItems(refreshed)
-      reset()
+      reset(); notify()
       router.refresh()
     } catch {
       setError('Something went wrong. Please try again.')
@@ -131,18 +134,22 @@ export default function AdminGalleryClient({ initialItems }: { initialItems: Gal
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this gallery item?')) return
-    await fetch(`/api/gallery/${id}`, { method: 'DELETE' })
+    if (!(await confirmAction())) return
+    const response = await fetch(`/api/gallery/${id}`, { method: 'DELETE' }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify(feedbackText('admin.feedback.deleted'))
     setItems(p => p.filter(i => i.id !== id))
     router.refresh()
   }
 
   const toggleFeatured = async (item: GalleryItem) => {
-    await fetch(`/api/gallery/${item.id}`, {
+    const response = await fetch(`/api/gallery/${item.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ featured: !item.featured }),
-    })
+    }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify()
     setItems(p => p.map(i => i.id === item.id ? { ...i, featured: !i.featured } : i))
   }
 

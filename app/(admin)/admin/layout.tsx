@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getAdminSession } from '@/lib/auth'
+import AdminFeedbackProvider from '@/components/admin/AdminFeedback'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,11 +18,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!admin) redirect('/admin/login')
 
   return (
+    <AdminFeedbackProvider>
     <div className="flex h-screen bg-charcoal-900 overflow-hidden">
       <AdminSidebar admin={admin} isSuperAdmin={admin.isSuperAdmin} />
       <main className="min-w-0 flex-1 overflow-y-auto bg-stone-50">
         {children}
       </main>
     </div>
+    </AdminFeedbackProvider>
   )
 }

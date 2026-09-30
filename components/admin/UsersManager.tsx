@@ -1,4 +1,5 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { useState } from 'react'
 
 interface Admin {
@@ -23,18 +24,15 @@ function timeAgo(date: string) {
 }
 
 export default function UsersManager({ initialAdmins, currentAdminId }: Props) {
+  const { notify, confirmAction } = useAdminFeedback()
   const [admins, setAdmins]   = useState(initialAdmins)
   const [busy, setBusy]       = useState<string | null>(null) // id of admin being actioned
   const [confirm, setConfirm] = useState<{ id: string; action: Action; name: string } | null>(null)
-  const [toast, setToast]     = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
 
   const pending = admins.filter(a => !a.isActive)
   const active  = admins.filter(a =>  a.isActive)
 
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 3500)
-  }
+  const showToast = notify
 
   const doAction = async (id: string, action: Action) => {
     setBusy(id); setConfirm(null)
@@ -89,20 +87,6 @@ export default function UsersManager({ initialAdmins, currentAdminId }: Props) {
   return (
     <div className="space-y-8">
 
-      {/* Toast notification */}
-      {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
-          toast.type === 'success'
-            ? 'bg-green-600 text-white'
-            : 'bg-red-600 text-white'
-        }`}>
-          {toast.type === 'success'
-            ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
-            : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-          }
-          {toast.msg}
-        </div>
-      )}
 
       {/* Confirm dialog */}
       {confirm && (
@@ -242,8 +226,8 @@ export default function UsersManager({ initialAdmins, currentAdminId }: Props) {
                           cls="bg-red-50 text-red-600 hover:bg-red-100 border border-red-100" />
                         <button
                           disabled={busy === admin.id}
-                          onClick={() => {
-                            if (confirm(`Delete ${admin.name}'s account permanently? This cannot be undone.`)) {
+                          onClick={async () => {
+                            if (await confirmAction()) {
                               doDelete(admin.id)
                             }
                           }}

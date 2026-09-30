@@ -19,7 +19,7 @@ export default async function AdminBlogPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="admin-page-header">
         <div>
           <h1 className="text-2xl font-display font-semibold text-charcoal-800">Blog</h1>
           <p className="text-stone-400 text-sm mt-1">

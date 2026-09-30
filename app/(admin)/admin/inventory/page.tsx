@@ -37,12 +37,6 @@ export default async function AdminInventoryPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-display font-semibold text-charcoal-800">Inventory</h1>
-        <p className="text-stone-400 text-sm mt-1">
-          Track raw materials, work-in-progress, finished goods, and MRO supplies across your manufacturing operations.
-        </p>
-      </div>
       <InventoryManager
         initialItems={JSON.parse(JSON.stringify(items))}
         initialSummary={summary}

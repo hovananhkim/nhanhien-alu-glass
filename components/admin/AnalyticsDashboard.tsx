@@ -1,4 +1,6 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t as feedbackText } from '@/lib/translations'
 import { useState, useEffect, useCallback } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -54,6 +56,7 @@ function skipEvery(n: number, total: number): number {
 }
 
 export default function AnalyticsDashboard() {
+  const { notify } = useAdminFeedback()
   const [data, setData]     = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [months, setMonths] = useState(6)
@@ -96,7 +99,7 @@ export default function AnalyticsDashboard() {
       a.download = `craftura-${exportType}-${new Date().toISOString().slice(0,10)}.${exportFormat}`
       a.click(); URL.revokeObjectURL(url)
     } else {
-      const d = await res.json(); alert(d.error || 'Export failed')
+      const d = await res.json(); notify(d.error || feedbackText('admin.feedback.error'), 'error')
     }
     setExporting(false)
   }

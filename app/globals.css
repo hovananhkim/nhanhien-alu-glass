@@ -471,3 +471,20 @@ html.dark select {
 .blog-content li   { margin-bottom: 0.5rem; line-height: 1.7; list-style: disc; }
 .blog-content strong { color: var(--text-primary); font-weight: 600; }
 .blog-content em   { font-style: italic; }
+
+/* Shared placement for page-level admin creation actions. */
+.admin-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.admin-page-header > div:first-child { min-width: 0; }
+.admin-page-header > button,
+.admin-page-header > a { flex-shrink: 0; }
+@media (max-width: 639px) {
+  .admin-page-header { flex-wrap: wrap; }
+  .admin-page-header > button,
+  .admin-page-header > a { margin-left: auto; }
+}

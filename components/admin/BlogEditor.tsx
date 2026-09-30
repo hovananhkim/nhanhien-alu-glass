@@ -1,4 +1,5 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function BlogEditor({ initialData, mode }: Props) {
+  const { notify } = useAdminFeedback()
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
@@ -66,6 +68,7 @@ export default function BlogEditor({ initialData, mode }: Props) {
       const method = mode === 'edit' ? 'PATCH' : 'POST'
       const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) { setError((await res.json()).error || 'Failed to save'); return }
+      notify()
       router.push('/admin/blog'); router.refresh()
     } catch { setError('Something went wrong') }
     setSaving(false)

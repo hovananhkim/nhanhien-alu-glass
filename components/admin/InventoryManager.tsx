@@ -1,4 +1,7 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t as feedbackText } from '@/lib/translations'
+import { t } from '@/lib/translations'
 import { useState, useCallback, useEffect } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -59,6 +62,7 @@ const emptyForm = { name:'', sku:'', description:'', category:'RAW_MATERIAL', su
 
 // ── Main Component ────────────────────────────────────────────
 export default function InventoryManager({ initialItems, initialSummary }: { initialItems: InventoryItem[]; initialSummary: Summary }) {
+  const { notify } = useAdminFeedback()
   const [items, setItems]         = useState(initialItems)
   const [summary, setSummary]     = useState(initialSummary)
   const [activeTab, setActiveTab] = useState('ALL')
@@ -125,14 +129,16 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
       const method = editItem ? 'PATCH' : 'POST'
       const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) { setFormError((await res.json()).error || 'Failed'); return }
-      setShowForm(false); setEditItem(null); setForm(emptyForm); await reload()
+      notify(); setShowForm(false); setEditItem(null); setForm(emptyForm); await reload()
     } catch { setFormError('Something went wrong') }
     setSaving(false)
   }
 
   const handleSoftDelete = async () => {
     if (!showDeleteConfirm) return
-    await fetch(`/api/admin/inventory/${showDeleteConfirm.id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: deleteReason }) })
+    const response = await fetch(`/api/admin/inventory/${showDeleteConfirm.id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: deleteReason }) }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify(feedbackText('admin.feedback.deleted'))
     setShowDeleteConfirm(null); setDeleteReason(''); await reload()
   }
 
@@ -164,7 +170,7 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
       const data = await res.json()
       if (!res.ok) { setTxnError(data.error || 'Failed to record movement'); return }
 
-      setShowTxnForm(false)
+      notify(); setShowTxnForm(false)
       setTxnForm({ type: 'STOCK_IN', quantity: '', unitCost: '', reason: '', reference: '' })
 
       // ✅ Refresh the detail panel — response includes _count now
@@ -189,6 +195,18 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
 
   // ── Render ────────────────────────────────────────────────────
   return (
+    <>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="text-2xl font-display font-semibold text-charcoal-800">{t('admin.nav.inventory')}</h1>
+          <p className="text-stone-400 text-sm mt-1">{t('admin.inventory.description')}</p>
+        </div>
+        <button onClick={() => { setEditItem(null); setForm(emptyForm); setFormError(''); setShowForm(true) }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-charcoal-800 hover:bg-charcoal-900 text-white text-sm font-medium rounded-xl transition-colors">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+          {t('admin.inventory.add')}
+        </button>
+      </div>
     <div className="space-y-5">
 
       {/* ── Summary Cards ── */}
@@ -228,7 +246,7 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
         </div>
       </div>
 
-      {/* ── Header: search + add ── */}
+      {/* ── Search filters ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2 items-center flex-wrap">
           <div className="relative">
@@ -244,11 +262,7 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
             Show deleted
           </label>
         </div>
-        <button onClick={() => { setEditItem(null); setForm(emptyForm); setFormError(''); setShowForm(true) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-charcoal-800 hover:bg-charcoal-900 text-white text-sm font-medium rounded-xl transition-colors">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
-          Add Item
-        </button>
+
       </div>
 
       {/* ── Tabs ── */}
@@ -684,5 +698,6 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
         </div>
       )}
     </div>
+    </>
   )
 }

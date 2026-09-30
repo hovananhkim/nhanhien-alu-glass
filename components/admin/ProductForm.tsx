@@ -1,4 +1,5 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export default function ProductForm({ categories, initialData, mode }: Props) {
+  const { notify } = useAdminFeedback()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -174,6 +176,7 @@ export default function ProductForm({ categories, initialData, mode }: Props) {
         const data = await res.json()
         setError(data.error || 'Failed to save product')
       } else {
+        notify()
         router.push('/admin/products')
         router.refresh()
       }

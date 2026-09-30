@@ -1,4 +1,6 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t as feedbackText } from '@/lib/translations'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -8,6 +10,7 @@ interface Category {
 }
 
 export default function CategoryManager({ initialCategories }: { initialCategories: Category[] }) {
+  const { notify, confirmAction } = useAdminFeedback()
   const [categories, setCategories] = useState(initialCategories)
   const [form, setForm] = useState({ name: '', description: '', imageUrl: '' })
   const [editId, setEditId] = useState<string | null>(null)
@@ -41,7 +44,7 @@ export default function CategoryManager({ initialCategories }: { initialCategori
         router.refresh()
         const updated = await fetch('/api/categories').then(r => r.json())
         setCategories(updated)
-        reset()
+        reset(); notify()
       }
     } catch { setError('Something went wrong') }
     setSaving(false)
@@ -49,11 +52,13 @@ export default function CategoryManager({ initialCategories }: { initialCategori
 
   const handleDelete = async (id: string, productCount: number) => {
     if (productCount > 0) {
-      alert(`Cannot delete: this category has ${productCount} products. Move or delete them first.`)
+      notify(feedbackText('admin.feedback.categoryNotEmpty'), 'error')
       return
     }
-    if (!confirm('Delete this category?')) return
-    await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+    if (!(await confirmAction())) return
+    const response = await fetch(`/api/categories/${id}`, { method: 'DELETE' }).catch(() => null)
+    if (!response?.ok) { notify(feedbackText('admin.feedback.error'), 'error'); return }
+    notify(feedbackText('admin.feedback.deleted'))
     const updated = await fetch('/api/categories').then(r => r.json())
     setCategories(updated)
     router.refresh()

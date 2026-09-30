@@ -18,7 +18,7 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="admin-page-header">
         <div>
           <h1 className="text-2xl font-display font-semibold text-charcoal-800">Products</h1>
           <p className="text-stone-400 text-sm mt-1">{products.length} products in catalogue</p>

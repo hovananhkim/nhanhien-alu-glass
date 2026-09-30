@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { currentBusinessMonth, payrollSummary, type Employee } from '@/lib/employees'
 import EmployeesTable from '@/components/admin/EmployeesTable'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { t } from '@/lib/translations'
 import AttendanceTable from '@/components/admin/AttendanceTable'
 
@@ -12,6 +13,7 @@ const control = 'admin-field-control rounded-lg border border-stone-300 bg-white
 const input = `h-10 w-full min-w-0 px-3 py-0 ${control}`
 const textarea = `min-h-20 w-full resize-y px-3 py-2 ${control}`
 const button = 'rounded-lg bg-charcoal-800 hover:bg-charcoal-900 px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+const tableIconButton = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md p-0 text-stone-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wood-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 const secondary = 'rounded-lg border border-stone-300 px-3 py-2 text-sm hover:bg-stone-100 disabled:opacity-50'
 const balance = (value: number) => value > 0 ? t('admin.employees.manager.owed').replace('{amount}', () => money(value)) : value < 0 ? t('admin.employees.manager.overpaid').replace('{amount}', () => money(-value)) : t('admin.employees.manager.balanced')
 function Field({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
@@ -39,7 +41,7 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
   const [busy, setBusy] = useState(false)
   const saving = useRef(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+  const { notify, confirmAction } = useAdminFeedback()
   const employee = employees.find(row => row.id === selected)
   const filtered = employees.filter(row => `${row.name} ${row.phone || ''}`.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')) && (status === 'all' || row.isActive === (status === 'active')))
   const totals = filtered.reduce((sum, row) => {
@@ -47,22 +49,29 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
     return { wages: sum.wages + s.wages, paid: sum.paid + s.totalPaid, owed: sum.owed + Math.max(s.closing, 0), excess: sum.excess + Math.max(-s.closing, 0) }
   }, { wages: 0, paid: 0, owed: 0, excess: 0 })
 
-  function open(value: Editor) { setError(''); setNotice(''); setEditor(value) }
+  function open(value: Editor) {
+    if (value.kind === 'profile' && view !== 'all') return
+    setError(''); setEditor(value)
+  }
   async function save(payload: Record<string, unknown>) {
     if (saving.current) return
     saving.current = true
-    setBusy(true); setError(''); setNotice('')
+    setBusy(true); setError('')
     try {
       const response = await fetch('/api/admin/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || t('admin.employees.manager.saveError'))
       setEmployees(rows => rows.some(row => row.id === data.id) ? rows.map(row => row.id === data.id ? data : row) : [...rows, data])
-      setSelected(data.id); setEditor(null); setNotice(t('admin.employees.manager.saved'))
-    } catch (err) { setError(err instanceof Error ? err.message : t('admin.employees.manager.connectionError')) }
+      setSelected(data.id); setEditor(null); notify(t(payload.action === 'deletePayment' || payload.action === 'deleteAttendance' ? 'admin.feedback.deleted' : 'admin.employees.manager.saved'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('admin.employees.manager.connectionError')
+      if (editor) setError(message)
+      else notify(message, 'error')
+    }
     finally { saving.current = false; setBusy(false) }
   }
   async function remove(action: string, id: string) {
-    if (!employee || !window.confirm(t('admin.employees.manager.deleteConfirm'))) return
+    if (!employee || !(await confirmAction(t('admin.employees.manager.deleteConfirm')))) return
     await save({ action, id, employeeId: employee.id })
   }
 
@@ -71,7 +80,7 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
     const existing = row.attendance.find(entry => entry.date === date)
     if (!checked) {
       if (!existing) return
-      if (existing.units !== 1 && !window.confirm(t('admin.employees.manager.removeAttendanceConfirm').replace('{date}', () => date).replace('{units}', () => String(existing.units)))) return
+      if (!(await confirmAction(t('admin.employees.manager.removeAttendanceConfirm').replace('{date}', () => date).replace('{units}', () => String(existing.units))))) return
       await save({ action: 'deleteAttendance', employeeId: row.id, id: existing.id })
     } else {
       await save({ action: 'attendance', employeeId: row.id, date, units: 1,
@@ -80,19 +89,17 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
   }
 
   if (view === 'all') return <div className="p-4 md:p-8">
+    <EmployeesTable employees={employees} onAdd={() => open({ kind: 'profile' })} onEdit={employee => open({ kind: 'profile', employee })} feedback={<>
     {!editor && error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
-    {notice && <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-green-700">{notice}</p>}
-    <EmployeesTable employees={employees} onAdd={() => open({ kind: 'profile' })} onEdit={employee => open({ kind: 'profile', employee })} />
+    </>} />
     {editor && <EmployeeEditor editor={editor} month={month} busy={busy} error={error} onClose={() => setEditor(null)} onSave={save} />}
   </div>
 
   return <div className="p-4 md:p-8 space-y-6">
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="admin-page-header">
       <div><h1 className="text-2xl font-display font-semibold text-charcoal-800">{view === 'attendance' ? t('admin.nav.employeeAttendance') : view === 'payments' ? t('admin.nav.employeePayments') : t('admin.employees.manager.allEmployees')}</h1><p className="mt-1 text-sm text-stone-500">{view === 'attendance' ? t('admin.employees.manager.attendanceDescription') : view === 'payments' ? t('admin.employees.manager.paymentsDescription') : t('admin.employees.manager.profilesDescription')}</p></div>
-      <button className={button} onClick={() => open({ kind: 'profile' })}>{t('admin.employees.manager.addEmployeeAction')}</button>
     </div>
     {!editor && error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
-    {notice && <p role="status" className="rounded-lg bg-green-50 p-3 text-green-700">{notice}</p>}
     <div className="flex flex-nowrap items-end gap-3 overflow-x-auto pb-1">
       <Field label={t('admin.employees.manager.month')} className="w-44 shrink-0"><input type="month" min="1900-01" max={view === 'attendance' ? currentMonth : '2100-12'} className={input} value={month} onChange={e => { if (view === 'attendance' && e.target.value > currentBusinessMonth()) return; if (/^(19|20)\d{2}-(0[1-9]|1[0-2])$/.test(e.target.value) || /^2100-(0[1-9]|1[0-2])$/.test(e.target.value)) setMonth(e.target.value) }} /></Field>
       <Field label={t('admin.employees.manager.search')} className="w-52 shrink-0"><input className={input} placeholder={t('admin.employees.manager.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)} /></Field>
@@ -107,21 +114,25 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
       <AttendanceTable employees={filtered} month={month} currentMonth={currentMonth} busy={busy} onToggle={toggleAttendance} />
     </> : <>
     <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
-      <table className="w-full text-left text-sm"><thead className="bg-stone-100 text-stone-500"><tr>{[t('admin.employees.table.title'), t('admin.employees.table.dailyRate'), t('admin.employees.manager.units'), t('admin.employees.manager.monthlySalary'), t('admin.employees.manager.paidThisMonth'), t('admin.employees.manager.closingSummary'), ''].map(label => <th key={label} className="whitespace-nowrap p-4 font-medium">{label}</th>)}</tr></thead>
+      <table className="w-full text-left text-sm"><thead className="bg-stone-100 text-stone-500"><tr>{[t('admin.employees.table.title'), t('admin.employees.table.dailyRate'), t('admin.employees.manager.units'), t('admin.employees.manager.monthlySalary'), t('admin.employees.manager.paidThisMonth'), t('admin.employees.manager.closingSummary'), t('admin.employees.table.actions')].map((label, index) => <th key={label} className={`whitespace-nowrap p-4 font-medium ${index === 6 ? 'text-right' : ''}`}>{label}</th>)}</tr></thead>
         <tbody>{filtered.map(row => { const s = payrollSummary(row, month); return <tr key={row.id} className={`border-t border-stone-100 ${row.id === selected ? 'bg-wood-50' : ''}`}>
           <td className="p-4"><button onClick={() => setSelected(row.id)} className="text-left font-semibold text-wood-700">{row.name}</button><p className="text-xs text-stone-500">{row.position || t('admin.employees.table.noPosition')} · {row.isActive ? t('admin.employees.table.active') : t('admin.employees.table.inactive')}</p></td>
-          <td className="p-4 whitespace-nowrap">{money(row.dailyRate)}</td><td className="p-4">{s.units}</td><td className="p-4 whitespace-nowrap">{money(s.wages)}</td><td className="p-4 whitespace-nowrap">{money(s.totalPaid)}</td><td className="p-4 whitespace-nowrap">{balance(s.closing)}</td><td className="p-4"><button className={secondary} onClick={() => setSelected(row.id)}>{t('admin.employees.manager.details')}</button></td>
+          <td className="p-4 whitespace-nowrap">{money(row.dailyRate)}</td><td className="p-4">{s.units}</td><td className="p-4 whitespace-nowrap">{money(s.wages)}</td><td className="p-4 whitespace-nowrap">{money(s.totalPaid)}</td><td className={`p-4 whitespace-nowrap font-medium ${s.closing > 0 ? 'text-green-700' : s.closing < 0 ? 'text-red-600' : 'text-stone-500'}`}>{s.closing.toLocaleString('vi-VN', { style: 'currency', currency: 'VND', signDisplay: 'exceptZero' })}</td><td className="p-4 text-right"><button type="button" className={`${tableIconButton} hover:bg-stone-100 hover:text-charcoal-700`} title={t('admin.employees.manager.details')} aria-label={t('admin.employees.manager.details')} onClick={() => setSelected(row.id)}>
+            <svg aria-hidden="true" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7C20.268 16.057 16.477 19 12 19S3.732 16.057 2.458 12Z" /><circle cx="12" cy="12" r="3" strokeWidth={1.8} /></svg>
+          </button></td>
         </tr> })}{!filtered.length && <tr><td colSpan={7} className="p-8 text-center text-stone-500">{employees.length ? t('admin.employees.manager.noMatches') : t('admin.employees.manager.noEmployees')}</td></tr>}</tbody>
       </table>
     </div>
     {employee && (() => { const s = payrollSummary(employee, month); const payments = employee.payments.filter(row => row.date.startsWith(month)); return <section className="rounded-xl border border-stone-200 bg-white p-5 space-y-5">
-      <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-xl font-semibold">{employee.name}</h2><p className="text-sm text-stone-500">{employee.phone || t('admin.employees.manager.noPhone')} · {employee.position || t('admin.employees.table.noPosition')}</p>{employee.notes && <p className="mt-2 text-sm whitespace-pre-wrap">{employee.notes}</p>}</div><button className={secondary} onClick={() => open({ kind: 'profile', employee })}>{t('admin.employees.manager.editProfile')}</button></div>
+      <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-xl font-semibold">{employee.name}</h2><p className="text-sm text-stone-500">{employee.phone || t('admin.employees.manager.noPhone')} · {employee.position || t('admin.employees.table.noPosition')}</p>{employee.notes && <p className="mt-2 text-sm whitespace-pre-wrap">{employee.notes}</p>}</div></div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">{[
         [t('admin.employees.manager.opening'), balance(s.opening)], [t('admin.employees.manager.wages'), money(s.wages)], [t('admin.employees.manager.advances'), money(s.advances)], [t('admin.employees.manager.salaryPaid'), money(s.salaryPaid)], [t('admin.employees.manager.monthlyPaid'), money(s.totalPaid)], [t('admin.employees.manager.closing'), balance(s.closing)], [t('admin.employees.manager.lifetimePaid'), money(s.lifetimePaid)], [t('admin.employees.manager.monthlyUnits'), String(s.units)],
       ].map(([label, value]) => <div key={label}><p className="text-stone-500">{label}</p><p className="mt-1 font-medium">{value}</p></div>)}</div>
       <p className="rounded-lg bg-stone-50 p-3 text-xs text-stone-500">{t('admin.employees.manager.payrollHelp')}</p>
       <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-semibold">{t('admin.employees.manager.paymentsHeading').replace('{month}', () => month)}</h3><button className={button} onClick={() => open({ kind: 'payment', employee })}>{t('admin.employees.manager.addPaymentAction')}</button></div>
-      <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead><tr>{[t('admin.employees.manager.date'), t('admin.employees.manager.paymentType'), t('admin.employees.manager.amount'), t('admin.employees.manager.notes'), t('admin.employees.table.actions')].map(label => <th className="p-2 text-stone-500 font-medium" key={label}>{label}</th>)}</tr></thead><tbody>{payments.map(row => <tr key={row.id} className="border-t border-stone-100"><td className="p-2 whitespace-nowrap">{row.date}</td><td className="p-2">{row.type === 'ADVANCE' ? t('admin.employees.manager.advance') : t('admin.employees.manager.salary')}</td><td className="p-2 whitespace-nowrap">{money(row.amount)}</td><td className="p-2">{row.notes}</td><td className="p-2"><button disabled={busy} className="text-red-600" onClick={() => remove('deletePayment', row.id)}>{t('admin.employees.manager.delete')}</button></td></tr>)}{!payments.length && <tr><td colSpan={5} className="py-4 text-stone-500">{t('admin.employees.manager.noPayments')}</td></tr>}</tbody></table></div>
+      <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead><tr>{[t('admin.employees.manager.date'), t('admin.employees.manager.paymentType'), t('admin.employees.manager.amount'), t('admin.employees.manager.notes'), t('admin.employees.table.actions')].map((label, index) => <th className={`p-2 text-stone-500 font-medium ${index === 4 ? 'text-right' : ''}`} key={label}>{label}</th>)}</tr></thead><tbody>{payments.map(row => <tr key={row.id} className="border-t border-stone-100"><td className="p-2 whitespace-nowrap">{row.date}</td><td className="p-2">{row.type === 'ADVANCE' ? t('admin.employees.manager.advance') : t('admin.employees.manager.salary')}</td><td className="p-2 whitespace-nowrap">{money(row.amount)}</td><td className="p-2">{row.notes}</td><td className="p-2 text-right"><button type="button" disabled={busy} className={`${tableIconButton} hover:bg-red-50 hover:text-red-600`} title={t('admin.employees.manager.delete')} aria-label={t('admin.employees.manager.delete')} onClick={() => remove('deletePayment', row.id)}>
+        <svg aria-hidden="true" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6" /></svg>
+      </button></td></tr>)}{!payments.length && <tr><td colSpan={5} className="py-4 text-stone-500">{t('admin.employees.manager.noPayments')}</td></tr>}</tbody></table></div>
     </section> })()}
     </>}
     {editor && <EmployeeEditor editor={editor} month={month} busy={busy} error={error} onClose={() => setEditor(null)} onSave={save} />}

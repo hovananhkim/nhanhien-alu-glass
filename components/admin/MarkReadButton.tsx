@@ -1,14 +1,19 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
+import { t } from '@/lib/translations'
 import { useRouter } from 'next/navigation'
 
 export default function MarkReadButton({ id }: { id: string }) {
   const router = useRouter()
+  const { notify } = useAdminFeedback()
   const handle = async () => {
-    await fetch(`/api/inquiries/${id}`, {
+    const response = await fetch(`/api/inquiries/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isRead: true }),
-    })
+    }).catch(() => null)
+    if (!response?.ok) { notify(t('admin.feedback.error'), 'error'); return }
+    notify()
     router.refresh()
   }
   return (

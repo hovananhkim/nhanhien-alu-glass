@@ -1,4 +1,5 @@
 'use client'
+import { useAdminFeedback } from '@/components/admin/AdminFeedback'
 import { useState } from 'react'
 
 const TEXT_FIELDS = [
@@ -60,9 +61,9 @@ const NAV_TABS = [
 ]
 
 export default function ContentEditor({ initialContent }: { initialContent: Record<string, string> }) {
+  const { notify } = useAdminFeedback()
   const [content, setContent] = useState(initialContent)
   const [saving, setSaving]   = useState(false)
-  const [saved, setSaved]     = useState(false)
   const [error, setError]     = useState('')
 
   const handleSave = async () => {
@@ -75,8 +76,7 @@ export default function ContentEditor({ initialContent }: { initialContent: Reco
         body: JSON.stringify(content),
       })
       if (res.ok) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+        notify()
       } else {
         setError('Failed to save. Please try again.')
       }
@@ -222,14 +222,6 @@ export default function ContentEditor({ initialContent }: { initialContent: Reco
 
       {/* Save button */}
       <div className="flex items-center gap-4 justify-end pb-8">
-        {saved && (
-          <span className="flex items-center gap-2 text-green-600 text-sm font-medium">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-            </svg>
-            Saved — changes are live!
-          </span>
-        )}
         <button
           onClick={handleSave}
           disabled={saving}
