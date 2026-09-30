@@ -1,4 +1,6 @@
 {
+  "admin.attendance.pastMonthReadOnly": "Tháng quá khứ chỉ được xem, không thể thay đổi chấm công.",
+  "admin.attendance.currentMonthOnly": "Chỉ được thay đổi chấm công trong tháng hiện tại.",
   "admin.employees.table.title": "Nhân viên",
   "admin.employees.table.count": "{count} nhân viên trong danh sách",
   "admin.employees.table.add": "Thêm nhân viên",

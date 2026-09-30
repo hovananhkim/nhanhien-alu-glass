@@ -1,17 +1,20 @@
 'use client'
 
-import type { Employee } from '@/lib/employees'
+import { currentBusinessMonth, type Employee } from '@/lib/employees'
 
 interface Props {
   employees: Employee[]
   month: string
+  currentMonth?: string
   busy: boolean
   onToggle: (employee: Employee, date: string, checked: boolean) => void
 }
 
-export default function AttendanceTable({ employees, month, busy, onToggle }: Props) {
+export default function AttendanceTable({ employees, month, currentMonth = currentBusinessMonth(), busy, onToggle }: Props) {
   const [year, monthNumber] = month.split('-').map(Number)
   const days = Array.from({ length: new Date(Date.UTC(year, monthNumber, 0)).getUTCDate() }, (_, i) => i + 1)
+
+  if (month > currentMonth) return null
 
   return <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
     <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={`Bảng chấm công tháng ${month}`}>
@@ -44,7 +47,7 @@ export default function AttendanceTable({ employees, month, busy, onToggle }: Pr
                 const units = entry?.units || 0
                 return <td key={date} className="px-0 py-3 text-center">
                   <label className="inline-flex w-full min-h-6 flex-col items-center justify-center gap-1" title={`${employee.name} · ${day}/${monthNumber}/${year} · ${units} công`}>
-                    <input type="checkbox" checked={units > 0} disabled={busy || !employee.isActive} onChange={event => onToggle(employee, date, event.target.checked)} aria-label={`${employee.name}, ngày ${day}/${monthNumber}/${year}, ${units} công`} className="h-3.5 w-3.5 accent-charcoal-800 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" />
+                    <input type="checkbox" checked={units > 0} disabled={busy || !employee.isActive || month !== currentMonth} onChange={event => onToggle(employee, date, event.target.checked)} aria-label={`${employee.name}, ngày ${day}/${monthNumber}/${year}, ${units} công`} className="h-3.5 w-3.5 accent-charcoal-800 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" />
                     {units > 0 && units !== 1 && <span className="text-[10px] text-stone-500">{units}</span>}
                   </label>
                 </td>

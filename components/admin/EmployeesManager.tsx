@@ -1,8 +1,9 @@
 'use client'
 
 import { useRef, useState, type FormEvent, type ReactNode, type SelectHTMLAttributes } from 'react'
-import { payrollSummary, type Employee } from '@/lib/employees'
+import { currentBusinessMonth, payrollSummary, type Employee } from '@/lib/employees'
 import EmployeesTable from '@/components/admin/EmployeesTable'
+import { t } from '@/lib/translations'
 import AttendanceTable from '@/components/admin/AttendanceTable'
 
 const money = (value: number) => value.toLocaleString('vi-VN') + ' ₫'
@@ -30,7 +31,8 @@ type Editor = { kind: 'profile' | 'attendance' | 'payment'; employee?: Employee;
 export default function EmployeesManager({ initialEmployees, view = 'all' }: { initialEmployees: Employee[]; view?: 'all' | 'attendance' | 'payments' }) {
   const [employees, setEmployees] = useState(initialEmployees)
   const [selected, setSelected] = useState(initialEmployees[0]?.id || '')
-  const [month, setMonth] = useState(today().slice(0, 7))
+  const currentMonth = currentBusinessMonth()
+  const [month, setMonth] = useState(currentMonth)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState(view === 'attendance' ? 'active' : 'all')
   const [editor, setEditor] = useState<Editor | null>(null)
@@ -65,7 +67,7 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
   }
 
   async function toggleAttendance(row: Employee, date: string, checked: boolean) {
-    if (!row.isActive) return
+    if (!row.isActive || date.slice(0, 7) !== currentBusinessMonth()) return
     const existing = row.attendance.find(entry => entry.date === date)
     if (!checked) {
       if (!existing) return
@@ -92,7 +94,7 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
     {!editor && error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
     {notice && <p role="status" className="rounded-lg bg-green-50 p-3 text-green-700">{notice}</p>}
     <div className="flex flex-nowrap items-end gap-3 overflow-x-auto pb-1">
-      <Field label="Tháng tổng kết" className="w-44 shrink-0"><input type="month" min="1900-01" max="2100-12" className={input} value={month} onChange={e => { if (/^(19|20)\d{2}-(0[1-9]|1[0-2])$/.test(e.target.value) || /^2100-(0[1-9]|1[0-2])$/.test(e.target.value)) setMonth(e.target.value) }} /></Field>
+      <Field label="Tháng tổng kết" className="w-44 shrink-0"><input type="month" min="1900-01" max={view === 'attendance' ? currentMonth : '2100-12'} className={input} value={month} onChange={e => { if (view === 'attendance' && e.target.value > currentBusinessMonth()) return; if (/^(19|20)\d{2}-(0[1-9]|1[0-2])$/.test(e.target.value) || /^2100-(0[1-9]|1[0-2])$/.test(e.target.value)) setMonth(e.target.value) }} /></Field>
       <Field label="Tìm nhân viên" className="w-52 shrink-0"><input className={input} placeholder="Tên hoặc số điện thoại" value={search} onChange={e => setSearch(e.target.value)} /></Field>
       <Field label="Trạng thái" className="w-fit shrink-0"><EmployeeSelect value={status} onChange={e => setStatus(e.target.value)}><option value="all">Tất cả</option><option value="active">Đang làm</option><option value="inactive">Đã nghỉ</option></EmployeeSelect></Field>
     </div>
@@ -101,8 +103,8 @@ export default function EmployeesManager({ initialEmployees, view = 'all' }: { i
     <p className="text-xs text-stone-500">Tổng hợp theo danh sách đang lọc. Số dư cuối tháng đã bao gồm các tháng trước. Tổng đã trả = tiền ứng + tiền lương đã thanh toán.</p>
     </>}
     {view === 'attendance' ? <>
-      <p className="text-xs text-stone-500" role="status">{busy ? 'Đang lưu chấm công…' : 'Tự động lưu khi tích hoặc bỏ tích. Tổng công tính theo tháng đã chọn. Công lẻ đã có được giữ nguyên và hiển thị dưới ô chọn.'}</p>
-      <AttendanceTable employees={filtered} month={month} busy={busy} onToggle={toggleAttendance} />
+      <p className="text-xs text-stone-500" role="status">{month < currentMonth ? t('admin.attendance.pastMonthReadOnly') : busy ? 'Đang lưu chấm công…' : 'Tự động lưu khi tích hoặc bỏ tích. Tổng công tính theo tháng đã chọn. Công lẻ đã có được giữ nguyên và hiển thị dưới ô chọn.'}</p>
+      <AttendanceTable employees={filtered} month={month} currentMonth={currentMonth} busy={busy} onToggle={toggleAttendance} />
     </> : <>
     <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
       <table className="w-full text-left text-sm"><thead className="bg-stone-100 text-stone-500"><tr>{['Nhân viên', 'Đơn giá / công', 'Số công', 'Lương tháng', 'Đã trả tháng', 'Tổng kết cuối tháng', ''].map(label => <th key={label} className="whitespace-nowrap p-4 font-medium">{label}</th>)}</tr></thead>

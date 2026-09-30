@@ -1,4 +1,6 @@
 {
+  "admin.attendance.pastMonthReadOnly": "Past months are read-only. Attendance cannot be changed.",
+  "admin.attendance.currentMonthOnly": "Attendance can only be changed in the current month.",
   "admin.employees.table.title": "Employees",
   "admin.employees.table.count": "{count} employees in the directory",
   "admin.employees.table.add": "Add Employee",

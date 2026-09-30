@@ -16,7 +16,7 @@ function loadTS(file, overrides = {}) {
   new Function('require', 'module', 'exports', source)(name => overrides[name] || require(name), module, module.exports)
   return module.exports
 }
-const { payrollSummary, validBusinessDate } = loadTS('lib/employees.ts')
+const { payrollSummary, validBusinessDate, currentBusinessMonth } = loadTS('lib/employees.ts')
 
 test('payroll carries prior debt/overpayment and counts advances only once', () => {
   const employee = {
@@ -47,7 +47,8 @@ test('employee API: authorization, independent profiles, attendance history, pay
   let authenticated = false
   const api = loadTS('app/api/admin/employees/route.ts', {
     '@/lib/auth': { getAdminSession: async () => authenticated ? { id: 'admin' } : null },
-    '@/lib/prisma': { prisma }, '@/lib/employees': { validBusinessDate },
+    '@/lib/prisma': { prisma }, '@/lib/employees': { validBusinessDate, currentBusinessMonth: () => '2026-09' },
+    '@/lib/translations': { t: key => key },
   })
   const post = body => api.POST(new NextRequest('http://localhost/api/admin/employees', { method: 'POST', body: JSON.stringify(body) }))
   try {
@@ -62,6 +63,14 @@ test('employee API: authorization, independent profiles, attendance history, pay
     assert.equal((await post({ action: 'attendance', employeeId, date: '2026-09-01', units: 1, dailyRate: 500000 })).status, 200)
     await post({ action: 'attendance', employeeId, date: '2026-09-01', units: 0.5, dailyRate: 500000 })
     assert.equal(await prisma.employeeAttendance.count(), 1)
+    for (const date of ['2026-08-31', '2026-10-01']) {
+      assert.equal((await post({ action: 'attendance', employeeId, date, units: 1, dailyRate: 500000 })).status, 403)
+      const historical = await prisma.employeeAttendance.create({ data: { employeeId, date, units: 1, dailyRate: 500000 } })
+      assert.equal((await post({ action: 'attendance', employeeId, date, units: 0.5, dailyRate: 500000 })).status, 403)
+      assert.equal((await post({ action: 'deleteAttendance', employeeId, id: historical.id })).status, 403)
+      assert.equal((await prisma.employeeAttendance.findUnique({ where: { id: historical.id } })).units, 1)
+      await prisma.employeeAttendance.delete({ where: { id: historical.id } })
+    }
     await post({ action: 'update', employeeId, name: employee.name, dailyRate: 600000, isActive: false })
     assert.equal((await prisma.employeeAttendance.findFirst()).dailyRate, 500000)
     const payment = { action: 'payment', employeeId, id: '12345678-1234-1234-1234-123456789012', date: '2026-09-02', type: 'ADVANCE', amount: 100000 }
@@ -98,12 +107,12 @@ test('employee API: authorization, independent profiles, attendance history, pay
 test('attendance grid follows month length, leap years and existing fractional work', () => {
   const React = require('react')
   const { renderToStaticMarkup } = require('react-dom/server')
-  const Table = loadTS('components/admin/AttendanceTable.tsx').default
+  const Table = loadTS('components/admin/AttendanceTable.tsx', { '@/lib/employees': { currentBusinessMonth: () => '2026-09' } }).default
   const employee = { id: 'e1', name: 'Nhân viên A', isActive: true, attendance: [
     { date: '2026-09-01', units: 1 }, { date: '2026-09-02', units: 0.5 }, { date: '2026-08-01', units: 2 },
   ] }
   for (const [month, days] of [['2026-02', 28], ['2028-02', 29], ['2026-09', 30], ['2026-12', 31], ['2100-02', 28]]) {
-    const html = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month, busy: false, onToggle() {} }))
+    const html = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month, currentMonth: month, busy: false, onToggle() {} }))
     assert.equal((html.match(/type="checkbox"/g) || []).length, days)
     assert.equal((html.match(/scope="col"/g) || []).length, days + 2)
     if (month === '2026-09') {
@@ -111,8 +120,23 @@ test('attendance grid follows month length, leap years and existing fractional w
       assert.match(html, />1,5<\/td>/)
     }
   }
+  const past = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month: '2026-08', busy: false, onToggle() {} }))
+  assert.equal((past.match(/disabled=""/g) || []).length, 31)
+  const current = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month: '2026-09', busy: false, onToggle() {} }))
+  assert.equal((current.match(/disabled=""/g) || []).length, 0)
+  const inactive = renderToStaticMarkup(React.createElement(Table, { employees: [{ ...employee, isActive: false }], month: '2026-09', busy: false, onToggle() {} }))
+  assert.equal((inactive.match(/disabled=""/g) || []).length, 30)
+  const future = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month: '2026-10', busy: false, onToggle() {} }))
+  assert.equal(future, '')
   const empty = renderToStaticMarkup(React.createElement(Table, { employees: [], month: '2026-09', busy: false, onToggle() {} }))
   assert.match(empty, /colSpan="32"/i)
   const busy = renderToStaticMarkup(React.createElement(Table, { employees: [employee], month: '2026-09', busy: true, onToggle() {} }))
   assert.equal((busy.match(/disabled=""/g) || []).length, 30)
+})
+
+
+test('business month rolls over at midnight in Vietnam, including year boundaries', () => {
+  assert.equal(currentBusinessMonth(new Date('2026-09-30T16:59:59Z')), '2026-09')
+  assert.equal(currentBusinessMonth(new Date('2026-09-30T17:00:00Z')), '2026-10')
+  assert.equal(currentBusinessMonth(new Date('2026-12-31T17:00:00Z')), '2027-01')
 })

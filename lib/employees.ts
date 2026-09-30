@@ -31,3 +31,11 @@ export function validBusinessDate(value: unknown): value is string {
   const date = new Date(`${value}T00:00:00Z`)
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value && value >= '1900-01-01' && value <= '2100-12-31'
 }
+
+// Business month is based on Vietnam time on both client and server.
+export function currentBusinessMonth(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit',
+  }).formatToParts(now)
+  return `${parts.find(part => part.type === 'year')!.value}-${parts.find(part => part.type === 'month')!.value}`
+}

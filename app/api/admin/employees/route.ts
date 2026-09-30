@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { getAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { validBusinessDate } from '@/lib/employees'
+import { currentBusinessMonth, validBusinessDate } from '@/lib/employees'
+
+import { t } from '@/lib/translations'
 
 export const dynamic = 'force-dynamic'
 const include = { attendance: { orderBy: { date: 'desc' as const } }, payments: { orderBy: { date: 'desc' as const } } }
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
     if (action === 'attendance') {
       if (!validBusinessDate(body.date) || !money(body.dailyRate) || typeof body.units !== 'number'
         || ![0, 0.5, 1, 1.5, 2].includes(body.units) || !optionalText(body.notes, 2000)) return fail('Ngày, số công hoặc đơn giá không hợp lệ.')
+      if (body.date.slice(0, 7) !== currentBusinessMonth()) return fail(t('admin.attendance.currentMonthOnly'), 403)
       const data = { units: body.units as number, dailyRate: body.dailyRate as number, notes: body.notes?.trim() || null }
       await prisma.employeeAttendance.upsert({ where: { employeeId_date: { employeeId, date: body.date } },
         create: { employeeId, date: body.date, ...data }, update: data })
@@ -49,7 +52,11 @@ export async function POST(req: NextRequest) {
       if (!existing) await prisma.employeePayment.create({ data })
     } else if (action === 'deleteAttendance' || action === 'deletePayment') {
       if (typeof body.id !== 'string') return fail('Thiếu bản ghi.')
-      if (action === 'deleteAttendance') await prisma.employeeAttendance.deleteMany({ where: { id: body.id, employeeId } })
+      if (action === 'deleteAttendance') {
+        const entry = await prisma.employeeAttendance.findFirst({ where: { id: body.id, employeeId } })
+        if (entry && entry.date.slice(0, 7) !== currentBusinessMonth()) return fail(t('admin.attendance.currentMonthOnly'), 403)
+        await prisma.employeeAttendance.deleteMany({ where: { id: body.id, employeeId } })
+      }
       else await prisma.employeePayment.deleteMany({ where: { id: body.id, employeeId } })
     } else return fail('Thao tác không hợp lệ.')
     return NextResponse.json(await prisma.employee.findUnique({ where: { id: employeeId }, include }))
